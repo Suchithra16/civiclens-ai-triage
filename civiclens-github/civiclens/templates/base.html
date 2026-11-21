@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}CivicLens{% endblock %} · CivicLens</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span>
+          <span class="brand-name">CivicLens</span>
+          <span class="brand-tag">{% block brand_tag %}AI triage for citizen complaints{% endblock %}</span>
+        </span>
+      </a>
+      {% block nav %}
+      <nav class="site-nav">
+        <a href="/" class="{{ 'active' if active == 'report' }}">Report an issue</a>
+        <a href="/departments" class="{{ 'active' if active == 'departments' }}">Departments</a>
+        <a href="/officer/login" class="nav-officer">Officer login</a>
+      </nav>
+      {% endblock %}
+    </div>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  {% block panel %}{% include "_ticket_panel.html" %}{% endblock %}
+
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

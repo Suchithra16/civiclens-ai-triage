@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CivicLens – Preview</title>
+<style>
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --ink: #1b2430;
+  --muted: #5d6b7a;
+  --line: #dde3ea;
+  --brand: #0f6e6e;
+  --brand-dark: #0a5252;
+  --brand-soft: #e3f1f1;
+  --danger: #c0392b;
+
+  /* severity */
+  --critical: #b3261e;
+  --high: #d9480f;
+  --medium: #b58105;
+  --low: #2f7d32;
+
+  /* status */
+  --st-confirmed: #1f5fbf;
+  --st-progress: #b26a00;
+  --st-resolved: #2f7d32;
+
+  /* urgency requests */
+  --urgent: #6d28d9;
+  --urgent-soft: #f3edff;
+
+  --radius: 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", sans-serif;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.mono { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; }
+.cap { text-transform: capitalize; }
+.center { text-align: center; }
+.hint { font-size: 13px; color: var(--muted); }
+
+/* ---------- header ---------- */
+.site-header { background: var(--brand); color: #fff; }
+.header-inner {
+  max-width: 1200px; margin: 0 auto; padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+.brand > span:last-child { display: flex; flex-direction: column; }
+.brand-mark { font-size: 28px; line-height: 1; }
+.brand-name { font-weight: 700; font-size: 20px; letter-spacing: 0.3px; }
+.brand-tag { font-size: 13px; opacity: 0.85; }
+.site-nav { display: flex; gap: 4px; }
+.site-nav a {
+  color: #fff; text-decoration: none; padding: 8px 14px; border-radius: 8px;
+  font-weight: 600; font-size: 14px; opacity: 0.85;
+}
+.site-nav a:hover { opacity: 1; background: rgba(255, 255, 255, 0.1); }
+.site-nav a.active { opacity: 1; background: rgba(255, 255, 255, 0.18); }
+
+/* ---------- layout ---------- */
+.container { margin: 24px auto; padding: 0 16px 120px; }
+.container.narrow { max-width: 720px; }
+.container.wide { max-width: 1200px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+h1 { margin: 0 0 6px; font-size: 24px; }
+h2 { margin: 0; font-size: 18px; }
+.lead { margin: 0 0 20px; color: var(--muted); }
+
+.banner {
+  background: #fff7e0; border: 1px solid #f0d58a; color: #6b5200;
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px;
+}
+
+/* ---------- forms ---------- */
+.field-label { display: block; font-weight: 600; margin: 18px 0 6px; }
+.optional { font-weight: 400; color: var(--muted); }
+
+textarea, input[type="text"] {
+  width: 100%; font: inherit; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+}
+textarea { resize: vertical; min-height: 110px; }
+textarea:focus, input:focus, .dropzone:focus, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 1px;
+}
+.counter { text-align: right; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+.dropzone {
+  border: 2px dashed var(--line); border-radius: 10px; padding: 22px;
+  text-align: center; cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.dropzone:hover, .dropzone.dragover { background: var(--brand-soft); border-color: var(--brand); }
+.dz-icon { font-size: 28px; margin-bottom: 4px; }
+
+.error {
+  margin-top: 12px; padding: 10px 12px; border-radius: 8px;
+  background: #fdecea; color: var(--danger); font-size: 14px;
+}
+
+/* ---------- photo thumbnails ---------- */
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.thumbs:empty { display: none; }
+.thumb {
+  position: relative; width: 84px; height: 84px; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--bg); display: block;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.new { outline: 2px solid var(--brand); outline-offset: -2px; }
+.thumb-remove {
+  position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%;
+  border: none; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 16px; line-height: 1;
+  cursor: pointer;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font: inherit; font-weight: 600; border-radius: 8px; padding: 11px 18px;
+  cursor: pointer; border: none; text-decoration: none; font-size: 15px;
+}
+.btn:disabled { opacity: 0.6; cursor: wait; }
+.btn-block { width: 100%; margin-top: 20px; }
+.btn-small { padding: 8px 14px; font-size: 14px; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
+.btn-secondary { background: var(--brand-soft); color: var(--brand-dark); }
+.btn-secondary:hover { background: #d3e8e8; }
+.btn-ghost { background: none; border: 1px dashed var(--brand); color: var(--brand); margin-top: 10px; }
+.btn-ghost:hover { background: var(--brand-soft); }
+
+/* ---------- badges, chips, status ---------- */
+.badge {
+  display: inline-block; padding: 3px 11px; border-radius: 999px;
+  font-weight: 700; font-size: 12px; color: #fff; white-space: nowrap;
+}
+.badge.critical { background: var(--critical); }
+.badge.high { background: var(--high); }
+.badge.medium { background: var(--medium); }
+.badge.low { background: var(--low); }
+
+.chip {
+  display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px;
+  background: var(--brand-soft); color: var(--brand-dark); font-weight: 600;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chips-label { font-size: 13px; color: var(--muted); margin-right: 2px; }
+
+.status {
+  display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 12px;
+  font-weight: 700; border: 1.5px solid currentColor; white-space: nowrap;
+}
+.status.confirmed { color: var(--st-confirmed); background: #eaf1fc; }
+.status.in-progress { color: var(--st-progress); background: #fff4e0; }
+.status.resolved { color: var(--st-resolved); background: #e8f5e9; }
+
+/* ---------- spinner ---------- */
+.spinner {
+  width: 38px; height: 38px; margin: 8px auto 12px;
+  border: 4px solid var(--brand-soft); border-top-color: var(--brand); border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* =====================================================================
+   PAGE 2 - Departments
+   ===================================================================== */
+.dept-layout { display: grid; grid-template-columns: 270px 1fr; gap: 20px; align-items: start; }
+.dept-layout > * { min-width: 0; } /* let long rows scroll instead of widening the page */
+
+.dept-sidebar {
+  position: sticky; top: 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 10px;
+}
+.sidebar-title {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted);
+  padding: 6px 10px 8px; font-weight: 700;
+}
+.dept-tabs { display: flex; flex-direction: column; gap: 2px; position: relative; }
+.dept-tab {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  font: inherit; font-size: 14px; color: var(--ink); background: none; border: none;
+  padding: 10px; border-radius: 8px; cursor: pointer;
+}
+.dept-tab:hover { background: var(--bg); }
+.dept-tab.active { background: var(--brand-soft); color: var(--brand-dark); font-weight: 700; }
+.tab-icon { font-size: 18px; width: 24px; text-align: center; }
+.tab-name { flex: 1; line-height: 1.3; }
+.tab-count {
+  font-size: 12px; font-weight: 700; min-width: 24px; text-align: center;
+  background: var(--bg); border-radius: 999px; padding: 1px 7px; color: var(--muted);
+}
+.dept-tab.active .tab-count { background: #fff; color: var(--brand-dark); }
+
+.dept-intro .lead { margin-bottom: 12px; }
+.dept-title-row { display: flex; gap: 14px; align-items: flex-start; }
+.dept-title-row h1 { overflow-wrap: anywhere; }
+.dept-icon { font-size: 34px; line-height: 1.1; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+.stat { background: var(--bg); border-radius: 10px; padding: 10px 12px; border-top: 3px solid var(--line); }
+.stat-value { font-size: 22px; font-weight: 700; }
+.stat-label { font-size: 12px; color: var(--muted); }
+.stat.total { border-top-color: var(--brand); }
+.stat.confirmed { border-top-color: var(--st-confirmed); }
+.stat.in-progress { border-top-color: var(--st-progress); }
+.stat.resolved { border-top-color: var(--st-resolved); }
+
+.log-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap; margin: 24px 0 12px;
+}
+.filter { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.filter button {
+  font: inherit; font-size: 13px; border: none; background: none; padding: 5px 12px;
+  border-radius: 999px; cursor: pointer; color: var(--muted); font-weight: 600;
+}
+.filter button.active { background: var(--brand); color: #fff; }
+
+.ticket-log { display: flex; flex-direction: column; gap: 14px; }
+.empty { color: var(--muted); text-align: center; padding: 30px; background: var(--card); border-radius: var(--radius); border: 1px dashed var(--line); }
+
+.ticket-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 20px; scroll-margin-top: 20px;
+}
+.ticket-card.mine { border-left: 4px solid var(--brand); }
+.ticket-card.flash { animation: flash 2.4s ease-out; }
+@keyframes flash { 0%, 30% { box-shadow: 0 0 0 4px rgba(15, 110, 110, 0.35); } 100% { box-shadow: none; } }
+
+.tc-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tc-id { font-size: 13px; color: var(--muted); font-weight: 600; }
+.spacer { flex: 1; }
+.tag-mine, .tag-complainant {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+  background: var(--brand); color: #fff; border-radius: 4px; padding: 2px 6px;
+}
+.tc-summary { margin: 8px 0 8px; font-size: 17px; line-height: 1.35; }
+.tc-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; color: var(--muted); }
+.tc-reason { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+
+.box-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;
+  color: var(--muted); margin-bottom: 4px;
+}
+.action { margin-top: 14px; padding: 12px 14px; border-radius: 10px; }
+.action p { margin: 0; }
+.action.done { background: #eef7ef; border: 1px solid #cfe6d1; }
+.action.pending { background: #fff8e8; border: 1px dashed #e6c77a; }
+.action.pending p { color: #7a5a00; font-style: italic; }
+
+.feedback { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.fb-list { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fb-list li { background: var(--bg); border-radius: 8px; padding: 8px 12px; }
+.fb-list p { margin: 0; font-size: 14px; }
+.fb-meta { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.fb-form { display: flex; gap: 8px; }
+.fb-form input { flex: 1; padding: 8px 12px; font-size: 14px; }
+
+/* =====================================================================
+   Floating ticket panel
+   ===================================================================== */
+.tp {
+  position: fixed; right: 20px; bottom: 20px; z-index: 50;
+  width: 400px; max-width: calc(100vw - 24px);
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(16, 32, 48, 0.22);
+  display: flex; flex-direction: column; max-height: calc(100vh - 40px);
+}
+.tp.minimized { width: auto; max-width: min(460px, calc(100vw - 24px)); }
+
+.tp-bar {
+  display: flex; align-items: center; gap: 10px; width: 100%; font: inherit; font-size: 14px;
+  text-align: left; background: var(--brand); color: #fff; border: none; cursor: pointer;
+  padding: 12px 14px; border-radius: 13px 13px 0 0;
+}
+.tp.minimized .tp-bar { border-radius: 13px; }
+.tp-bar-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-bar-state { opacity: 0.85; }
+.tp-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #ffd166; flex: none;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.tp.confirmed .tp-dot { background: #7be495; animation: none; }
+@keyframes pulse { 50% { opacity: 0.35; } }
+.tp-toggle { font-size: 20px; line-height: 1; width: 20px; text-align: center; }
+
+.tp-body { padding: 16px 18px 18px; overflow-y: auto; }
+.tp-tags { display: flex; gap: 8px; align-items: center; }
+.tp-summary { margin: 10px 0 8px; font-size: 17px; line-height: 1.35; }
+.tp-grid { margin: 10px 0; padding: 10px 12px; background: var(--bg); border-radius: 10px; display: grid; gap: 8px; }
+.tp-grid dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+.tp-grid dd { margin: 0; font-weight: 600; font-size: 14px; }
+.tp-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; margin: 12px 0 2px; }
+.tp-text { margin: 0; font-size: 14px; }
+.tp-note { font-size: 13px; color: var(--muted); background: var(--brand-soft); border-radius: 8px; padding: 8px 10px; margin: 14px 0 0; }
+.tp-actions { display: flex; gap: 10px; margin-top: 14px; }
+.tp-actions .btn { flex: 1; }
+.tp .field-label { margin-top: 12px; }
+.tp textarea { min-height: 100px; }
+.add-photo { width: 100%; }
+.done-icon {
+  width: 52px; height: 52px; border-radius: 50%; margin: 6px auto 8px; background: #e8f5e9;
+  color: var(--st-resolved); font-size: 28px; font-weight: 700; display: grid; place-items: center;
+}
+
+/* =====================================================================
+   "Request urgent action"
+   ===================================================================== */
+.btn-urgent { background: var(--urgent); color: #fff; }
+.btn-urgent:hover { background: #5b21b6; }
+.btn-urgent-outline { background: #fff; color: var(--urgent); border: 1.5px solid var(--urgent); margin-top: 10px; }
+.btn-urgent-outline:hover { background: var(--urgent-soft); }
+.btn-link-plain {
+  background: none; border: none; padding: 0; margin-top: 6px; font: inherit; font-size: 13px;
+  color: var(--urgent); text-decoration: underline; cursor: pointer;
+}
+.tag-urgent {
+  font-size: 12px; font-weight: 700; color: #fff; background: var(--urgent);
+  border-radius: 999px; padding: 3px 10px; white-space: nowrap;
+}
+
+.urgency { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--urgent-soft); border: 1px solid #e2d6fb; }
+.urgency:not(:has(.ur-list)) { background: none; border: none; padding: 0; }
+.ur-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ur-item { background: #fff; border-radius: 8px; padding: 8px 12px; border-left: 3px solid var(--urgent); }
+.ur-item.accepted { border-left-color: var(--st-resolved); }
+.ur-item.rejected { border-left-color: var(--muted); }
+.ur-line { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 13px; }
+.ur-status { font-weight: 700; color: var(--urgent); }
+.ur-item.accepted .ur-status { color: var(--st-resolved); }
+.ur-item.rejected .ur-status { color: var(--muted); }
+.ur-ai { display: inline-flex; gap: 4px; align-items: center; color: var(--muted); }
+.ur-officer { margin: 6px 0 0; font-size: 13px; }
+.ur-details { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.ur-details p { margin: 0 0 4px; font-size: 14px; }
+
+.verdict {
+  display: inline-block; font-size: 11px; font-weight: 700; border-radius: 4px; padding: 1px 7px;
+  background: var(--bg); color: var(--muted);
+}
+.verdict.supported { background: #e8f5e9; color: var(--st-resolved); }
+.verdict.weak { background: #fff4e0; color: var(--st-progress); }
+.verdict.not-supported { background: #fdecea; color: var(--danger); }
+
+.ur-dialog {
+  width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 32px); padding: 0;
+  border: none; border-radius: 14px; box-shadow: 0 20px 60px rgba(16, 32, 48, 0.3); color: var(--ink);
+}
+.ur-dialog::backdrop { background: rgba(16, 32, 48, 0.45); }
+.ur-dialog form, .ur-pad { padding: 20px 22px 22px; }
+.ur-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.ur-kicker { font-size: 12px; font-weight: 700; color: var(--urgent); text-transform: uppercase; letter-spacing: 0.5px; }
+.ur-head h2 { font-size: 19px; margin-top: 2px; }
+.ur-close { background: none; border: none; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); padding: 0 4px; }
+.ur-ticket { margin-top: 14px; background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+.ur-ticket-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+.ur-ticket p { margin: 4px 0 0; font-weight: 600; }
+.ur-intro { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+.ur-days { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ur-days input {
+  width: 90px; font: inherit; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+}
+.ur-quick { display: flex; gap: 6px; }
+.ur-quick button {
+  font: inherit; font-size: 13px; border: 1px solid var(--line); background: #fff; border-radius: 999px;
+  padding: 5px 12px; cursor: pointer;
+}
+.ur-quick button:hover { border-color: var(--urgent); color: var(--urgent); }
+.required { font-weight: 600; color: var(--urgent); font-size: 13px; }
+.ur-proof-hint { margin: 0 0 4px; }
+.ur-privacy { font-size: 13px; background: var(--brand-soft); color: var(--brand-dark); border-radius: 8px; padding: 8px 10px; margin: 16px 0 0; }
+.ur-check { text-align: left; background: var(--bg); border-radius: 10px; padding: 10px 12px; margin: 14px 0 10px; }
+.ur-check p { margin: 6px 0 0; font-size: 14px; }
+
+/* =====================================================================
+   Officer portal
+   ===================================================================== */
+.site-nav a.nav-officer { border: 1px solid rgba(255, 255, 255, 0.45); }
+.officer-hint { text-align: center; font-size: 14px; color: var(--muted); margin-top: 16px; }
+.officer-hint a { color: var(--brand); font-weight: 600; }
+.kicker { font-size: 12px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: 0.5px; }
+.login-card { max-width: 460px; margin: 20px auto 0; }
+select {
+  width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: #fff; color: var(--ink);
+}
+input[type="password"] {
+  width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+}
+
+.officer-nav { display: flex; align-items: center; gap: 10px; }
+.officer-chip {
+  font-size: 13px; font-weight: 600; background: rgba(255, 255, 255, 0.14);
+  padding: 6px 12px; border-radius: 999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 380px;
+}
+.nav-btn {
+  font: inherit; font-size: 14px; font-weight: 600; color: #fff; background: none;
+  border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 8px; padding: 7px 12px; cursor: pointer;
+}
+.nav-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+.bell-wrap { position: relative; }
+.bell {
+  position: relative; display: grid; place-items: center; width: 42px; height: 42px;
+  border-radius: 50%; border: none; background: rgba(255, 255, 255, 0.14); color: #fff; cursor: pointer;
+}
+.bell:hover { background: rgba(255, 255, 255, 0.24); }
+.bell.has-unread svg { animation: ring 2.4s ease-in-out infinite; transform-origin: 50% 10%; }
+@keyframes ring { 0%, 80%, 100% { transform: rotate(0); } 84% { transform: rotate(14deg); } 88% { transform: rotate(-12deg); } 92% { transform: rotate(8deg); } 96% { transform: rotate(-4deg); } }
+.bell-count {
+  position: absolute; top: -3px; right: -3px; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 999px; background: #e5383b; color: #fff; font-size: 11px; font-weight: 700;
+  display: grid; place-items: center; border: 2px solid var(--brand);
+}
+.notif-panel {
+  position: absolute; right: 0; top: calc(100% + 10px); width: 400px; max-width: calc(100vw - 24px);
+  max-height: 70vh; overflow-y: auto; background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 40px rgba(16, 32, 48, 0.25); z-index: 60;
+}
+.notif-head {
+  display: flex; justify-content: space-between; align-items: center; padding: 12px 14px;
+  border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card);
+}
+.notif-head .btn-link-plain { margin: 0; color: var(--brand); }
+.notif-list { list-style: none; margin: 0; padding: 0; }
+.notif {
+  display: flex; gap: 10px; width: 100%; text-align: left; font: inherit; background: none; border: none;
+  border-bottom: 1px solid var(--line); padding: 10px 14px; cursor: pointer; color: var(--ink);
+}
+.notif:hover { background: var(--bg); }
+.notif.unread { background: #f2f8f8; }
+.notif.unread.emergency { background: #fdf0ef; }
+.notif-icon { font-size: 20px; line-height: 1.2; }
+.notif-body { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.notif-kind { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); }
+.notif.emergency .notif-kind { color: var(--critical); }
+.notif-msg { font-size: 14px; }
+.notif.unread .notif-msg { font-weight: 600; }
+.notif-time { font-size: 12px; color: var(--muted); }
+.notif-empty { padding: 20px; text-align: center; color: var(--muted); margin: 0; }
+
+.stat.overdue { border-top-color: #e5383b; }
+.stat.critical { border-top-color: var(--critical); }
+
+.off-card { border-left: 5px solid var(--line); }
+.off-card.sev-critical { border-left-color: var(--critical); }
+.off-card.sev-high { border-left-color: var(--high); }
+.off-card.sev-medium { border-left-color: var(--medium); }
+.off-card.sev-low { border-left-color: var(--low); }
+.off-card.is-overdue { background: #fffafa; }
+
+.due { font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 10px; background: var(--bg); color: var(--muted); white-space: nowrap; }
+.due.soon { background: #fff4e0; color: var(--st-progress); }
+.due.overdue { background: #fdecea; color: var(--danger); }
+.due.done { background: #e8f5e9; color: var(--st-resolved); }
+
+.btn-link-plain.teal { color: var(--brand); }
+.off-details { margin-top: 10px; padding: 12px 14px; background: var(--bg); border-radius: 10px; }
+.off-details p { margin: 0 0 8px; font-size: 14px; }
+.original { white-space: pre-wrap; background: #fff; border-radius: 8px; padding: 8px 10px; }
+.ur-reason { margin: 6px 0 2px; font-size: 14px; }
+.ur-decide { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.ur-decide input { flex: 1; min-width: 180px; font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; }
+
+.off-update { margin-top: 14px; padding: 12px 14px; border-radius: 10px; border: 1.5px solid var(--brand-soft); background: #fbfefe; }
+.checks { display: flex; gap: 18px; margin: 4px 0 10px; flex-wrap: wrap; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--brand); }
+.off-update textarea { min-height: 64px; }
+.off-update-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 80;
+  background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+.toast.error-toast { background: var(--danger); }
+
+/* citizen side: target date */
+.target { color: var(--brand-dark); font-weight: 600; }
+.target.late { color: var(--danger); }
+
+/* =====================================================================
+   Responsive
+   ===================================================================== */
+@media (max-width: 860px) {
+  .dept-layout { grid-template-columns: 1fr; }
+  .dept-sidebar { position: static; padding: 6px; }
+  .sidebar-title { display: none; }
+  .dept-tabs { flex-direction: row; overflow-x: auto; gap: 4px; }
+  .dept-tab { flex: none; width: auto; white-space: nowrap; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .officer-chip { display: none; }
+  .notif-panel { position: fixed; top: 76px; left: 12px; right: 12px; width: auto; max-width: none; }
+}
+
+@media (max-width: 520px) {
+  .card { padding: 18px; }
+  .tp { right: 12px; left: 12px; bottom: 12px; width: auto; max-width: none; }
+  .tp.minimized { max-width: none; }
+  .fb-form { flex-direction: column; }
+}
+
+/* preview-only */
+body.officer-mode #ticket-panel { display: none !important; }
+.preview-bar {
+  background: #fff7e0; border-bottom: 1px solid #f0d58a; color: #6b5200;
+  font-size: 13px; text-align: center; padding: 7px 16px;
+}
+
+</style>
+</head>
+<body>
+<header class="site-header" id="hdr-citizen">
+    <div class="header-inner">
+      <a class="brand" href="#report">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span>
+          <span class="brand-name">CivicLens</span>
+          <span class="brand-tag">AI triage for citizen complaints</span>
+        </span>
+      </a>
+      
+      <nav class="site-nav">
+        <a href="#report" data-view="report">Report an issue</a>
+        <a href="#departments" data-view="departments">Departments</a>
+        <a href="#officer-login" data-view="officer-login" class="nav-officer">Officer login</a>
+      </nav>
+      
+    </div>
+  </header>
+<header class="site-header" id="hdr-officer-login" hidden>
+    <div class="header-inner">
+      <a class="brand" href="#report">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span>
+          <span class="brand-name">CivicLens</span>
+          <span class="brand-tag">Officer portal</span>
+        </span>
+      </a>
+      
+<nav class="site-nav">
+  <a href="#report">← Citizen site</a>
+</nav>
+
+    </div>
+  </header>
+<header class="site-header" id="hdr-officer" hidden>
+    <div class="header-inner">
+      <a class="brand" href="#report">
+        <span class="brand-mark" aria-hidden="true">◎</span>
+        <span>
+          <span class="brand-name">CivicLens</span>
+          <span class="brand-tag">Officer portal</span>
+        </span>
+      </a>
+      
+<div class="officer-nav">
+  <span id="officer-chip" class="officer-chip"></span>
+
+  <!-- notification bell -->
+  <div class="bell-wrap">
+    <button type="button" id="bell" class="bell" aria-label="Notifications" aria-haspopup="true"
+      aria-expanded="false" aria-controls="notif-panel">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-1.7 1.7A1 1 0 0 0 4 19.4h16a1 1 0 0 0 .7-1.7Z"/>
+      </svg>
+      <span id="bell-count" class="bell-count" hidden></span>
+    </button>
+    <div id="notif-panel" class="notif-panel" hidden>
+      <div class="notif-head">
+        <strong>Notifications</strong>
+        <button type="button" id="notif-read-all" class="btn-link-plain">Mark all as read</button>
+      </div>
+      <ul id="notif-list" class="notif-list"></ul>
+      <p id="notif-empty" class="notif-empty" hidden>No notifications yet.</p>
+    </div>
+  </div>
+
+  <button type="button" id="logout" class="nav-btn">Log out</button>
+</div>
+
+    </div>
+  </header>
+<div class="preview-bar">Interactive preview. Runs entirely in your browser with the offline demo rules (no real AI). Nothing is saved; reloading starts fresh. Officer password = officer name.</div>
+<main id="view-report" class="container narrow">
+  <div id="pending-banner" class="banner" hidden>
+    You have a ticket waiting for your confirmation (see the panel at the bottom right).
+    Submitting a new complaint will replace it.
+  </div>
+
+  <!-- ============ FORM ============ -->
+  <section id="report-section" class="card">
+    <h1>Report an issue</h1>
+    <p class="lead">
+      Tell us what's wrong in your own words, in English or any Indian language.
+      You can add photos too. Either one is enough.
+    </p>
+
+    <form id="report-form" novalidate>
+      <label for="complaint" class="field-label">Describe the problem</label>
+      <textarea id="complaint" name="complaint" rows="5" maxlength="5000"
+        placeholder="e.g. Big pothole near the bus stop, two bikes fell yesterday…&#10;या: हमारी गली में तीन दिन से कचरा नहीं उठाया गया…"></textarea>
+      <div class="hint counter"><span id="char-count">0</span> / 5000</div>
+
+      <span class="field-label">Photos <span class="optional">(optional, up to 4)</span></span>
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Add photos">
+        <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
+        <div class="dz-icon" aria-hidden="true">📷</div>
+        <div><strong>Tap to add photos</strong> or drag them here</div>
+        <div class="hint">JPG, PNG or WEBP · up to 10 MB each</div>
+      </div>
+      <div id="photo-previews" class="thumbs editable"></div>
+
+      <label for="location" class="field-label">Location <span class="optional">(optional)</span></label>
+      <input type="text" id="location" name="location" maxlength="300"
+        placeholder="e.g. 5th Cross, Jayanagar, near Ganesha temple" />
+
+      <div id="form-error" class="error" role="alert" hidden></div>
+
+      <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Submit complaint</button>
+    </form>
+  </section>
+
+  <p class="officer-hint">Municipal officer? <a href="#officer-login">Log in to your department →</a></p>
+
+  <!-- ============ LOADING ============ -->
+  <section id="loading-section" class="card center" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <p><strong>Analysing your complaint…</strong></p>
+    <p class="hint">Reading the text, checking the photos and routing it to the right department.</p>
+  </section>
+</main>
+<main id="view-departments" hidden class="container wide dept-layout">
+  <!-- ============ SIDEBAR: department tabs ============ -->
+  <nav class="dept-sidebar" aria-label="Departments">
+    <div class="sidebar-title">Departments</div>
+    <div id="dept-tabs" class="dept-tabs" role="tablist"></div>
+  </nav>
+
+  <!-- ============ SELECTED DEPARTMENT ============ -->
+  <section id="dept-panel" class="dept-panel" role="tabpanel" aria-live="polite">
+    <div class="card dept-intro">
+      <div class="dept-title-row">
+        <span id="dept-icon" class="dept-icon" aria-hidden="true"></span>
+        <div>
+          <h1 id="dept-name">Loading…</h1>
+          <p id="dept-description" class="lead"></p>
+        </div>
+      </div>
+      <div id="dept-handles" class="chips"></div>
+      <div id="dept-stats" class="stats"></div>
+    </div>
+
+    <div class="log-header">
+      <h2>Complaint history</h2>
+      <div id="status-filter" class="filter" role="group" aria-label="Filter by status">
+        <button type="button" data-status="all" class="active">All</button>
+        <button type="button" data-status="Confirmed">Confirmed</button>
+        <button type="button" data-status="In Progress">In Progress</button>
+        <button type="button" data-status="Resolved">Resolved</button>
+      </div>
+    </div>
+
+    <div id="ticket-log" class="ticket-log"></div>
+    <p id="log-empty" class="empty" hidden>No complaints here yet.</p>
+  </section>
+</main>
+<main id="view-officer-login" hidden class="container narrow">
+  <section class="card login-card">
+    <div class="kicker">Municipal officers</div>
+    <h1>Officer login</h1>
+    <p class="lead">Log in to see and update the complaints of your department.</p>
+
+    <form id="login-form" novalidate>
+      <label for="off-name" class="field-label">Name</label>
+      <input type="text" id="off-name" autocomplete="name" maxlength="60" placeholder="e.g. Ravi Kumar" />
+
+      <label for="off-dept" class="field-label">Department</label>
+      <select id="off-dept">
+        <option value="" selected disabled>Choose your department</option>
+        
+        <option value="roads">🛣️ Roads &amp; Engineering Department</option>
+        
+        <option value="waste">🗑️ Solid Waste Management Department</option>
+        
+        <option value="water">🚰 Water Supply Department</option>
+        
+        <option value="electricity">💡 Street Lighting &amp; Electrical Department</option>
+        
+        <option value="trees">🌳 Horticulture &amp; Tree Cell</option>
+        
+        <option value="drainage">🌊 Drainage &amp; Sewerage Department</option>
+        
+        <option value="other">📋 Public Grievance Cell</option>
+        
+      </select>
+
+      <label for="off-password" class="field-label">Password</label>
+      <input type="password" id="off-password" autocomplete="current-password" />
+      <p class="hint">Prototype: for now, your password is your name.</p>
+
+      <div id="login-error" class="error" role="alert" hidden></div>
+
+      <button type="submit" id="login-btn" class="btn btn-primary btn-block">Log in</button>
+    </form>
+  </section>
+</main>
+<main id="view-officer" hidden class="container wide">
+  <section class="card">
+    <div class="dept-title-row">
+      <span id="off-dept-icon" class="dept-icon" aria-hidden="true"></span>
+      <div>
+        <div class="kicker">Officer dashboard</div>
+        <h1 id="off-dept-name">Loading…</h1>
+        <p id="off-sla" class="lead"></p>
+      </div>
+    </div>
+    <div id="off-stats" class="stats"></div>
+  </section>
+
+  <div class="log-header">
+    <h2>Complaints <span class="hint">· sorted by severity, then deadline</span></h2>
+    <div id="off-filter" class="filter" role="group" aria-label="Show">
+      <button type="button" data-filter="open" class="active">Open</button>
+      <button type="button" data-filter="Resolved">Resolved</button>
+      <button type="button" data-filter="all">All</button>
+    </div>
+  </div>
+
+  <div id="off-list" class="ticket-log"></div>
+  <p id="off-empty" class="empty" hidden></p>
+</main>
+<dialog id="urgency-dialog" class="ur-dialog" aria-labelledby="ur-title">
+  <form id="ur-form" novalidate>
+    <header class="ur-head">
+      <div>
+        <div class="ur-kicker">⚡ Request urgent action</div>
+        <h2 id="ur-title">Ask for this complaint to be fixed sooner</h2>
+      </div>
+      <button type="button" class="ur-close" data-close aria-label="Close">×</button>
+    </header>
+
+    <div class="ur-ticket">
+      <div class="ur-ticket-row"><span id="ur-ticket-id" class="mono"></span><span id="ur-ticket-sev"></span></div>
+      <p id="ur-ticket-summary"></p>
+    </div>
+
+    <p class="ur-intro">Use this only if waiting for the normal priority would cause real harm.
+      Every request is checked against its proof before an officer decides.</p>
+
+    <label for="ur-reason" class="field-label">Why does this need urgent action?</label>
+    <textarea id="ur-reason" rows="4" maxlength="1000"
+      placeholder="e.g. Children from the school next door walk past this open manhole every morning."></textarea>
+    <div class="hint counter"><span id="ur-count">0</span> / 1000 · at least 15 characters</div>
+
+    <label for="ur-days" class="field-label">Needed within</label>
+    <div class="ur-days">
+      <input type="number" id="ur-days" min="1" max="60" step="1" inputmode="numeric" placeholder="3" />
+      <span>days</span>
+      <div class="ur-quick" role="group" aria-label="Quick pick">
+        <button type="button" data-days="1">1 day</button>
+        <button type="button" data-days="3">3 days</button>
+        <button type="button" data-days="7">7 days</button>
+      </div>
+    </div>
+
+    <span class="field-label">Proof <span class="required">(required)</span></span>
+    <p class="hint ur-proof-hint">Up to 3 photos that prove your reason: the danger itself, or a letter
+      or notice (e.g. from a school or hospital). Requests without convincing proof are rejected.</p>
+    <div id="ur-proof-previews" class="thumbs editable"></div>
+    <label id="ur-add-label" class="btn btn-ghost add-photo">
+      ＋ Add proof photos
+      <input type="file" id="ur-proof" accept="image/jpeg,image/png,image/webp" multiple hidden />
+    </label>
+
+    <p class="ur-privacy">🔒 Only municipal officers and you can see your reason and proof.
+      Other citizens only see that urgent action was requested.</p>
+
+    <div id="ur-error" class="error" role="alert" hidden></div>
+
+    <div class="tp-actions">
+      <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+      <button type="submit" class="btn btn-urgent">⚡ Send request</button>
+    </div>
+  </form>
+
+  <div id="ur-loading" class="center ur-pad" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <p><strong>Checking your proof…</strong></p>
+    <p class="hint">The AI is comparing your photos with your reason.</p>
+  </div>
+
+  <div id="ur-result" class="center ur-pad" hidden>
+    <div class="done-icon" aria-hidden="true">✓</div>
+    <h2>Request sent</h2>
+    <p class="hint">Wanted within <strong id="ur-res-days"></strong> · <strong>Pending officer review</strong></p>
+    <div class="ur-check">
+      <div class="box-label">AI proof check</div>
+      <span id="ur-res-verdict" class="verdict"></span>
+      <p id="ur-res-note"></p>
+    </div>
+    <p class="hint">The AI check only helps the officer. The officer makes the final decision.</p>
+    <div class="tp-actions"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+  </div>
+</dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<aside id="ticket-panel" class="tp" hidden aria-label="Your ticket">
+  <button type="button" id="tp-bar" class="tp-bar" aria-expanded="true" aria-controls="tp-body">
+    <span class="tp-dot" aria-hidden="true"></span>
+    <span class="tp-bar-text">
+      <strong>Your ticket</strong>
+      <span id="tp-bar-code" class="mono"></span>
+      <span id="tp-bar-state" class="tp-bar-state">· awaiting confirmation</span>
+    </span>
+    <span id="tp-toggle-icon" class="tp-toggle" aria-hidden="true">–</span>
+    <span class="sr-only" id="tp-toggle-label">Minimise</span>
+  </button>
+
+  <div id="tp-body" class="tp-body">
+    <!-- view mode -->
+    <div id="tp-view">
+      <div class="tp-tags">
+        <span id="tp-severity" class="badge"></span>
+        <span id="tp-category" class="chip cap"></span>
+      </div>
+      <h3 id="tp-summary" class="tp-summary"></h3>
+
+      <dl class="tp-grid">
+        <div><dt>Department</dt><dd id="tp-department"></dd></div>
+        <div><dt>Detected language</dt><dd id="tp-language"></dd></div>
+        <div><dt>Location</dt><dd id="tp-location"></dd></div>
+      </dl>
+
+      <p class="tp-label">Severity reason</p>
+      <p id="tp-severity-reason" class="tp-text"></p>
+
+      <div id="tp-translation-wrap" hidden>
+        <p class="tp-label">English translation</p>
+        <p id="tp-translation" class="tp-text"></p>
+      </div>
+
+      <div id="tp-photos-wrap" hidden>
+        <p class="tp-label">Photos</p>
+        <div id="tp-photos" class="thumbs"></div>
+        <p id="tp-image-obs" class="hint"></p>
+      </div>
+
+      <p class="tp-note">Check the ticket. If the AI got something wrong, <strong>Edit</strong> it.
+        When it looks right, <strong>Confirm</strong> to send it to the department.</p>
+
+      <div class="tp-actions">
+        <button type="button" id="tp-edit" class="btn btn-secondary">✎ Edit</button>
+        <button type="button" id="tp-confirm" class="btn btn-primary">✓ Confirm</button>
+      </div>
+    </div>
+
+    <!-- edit mode -->
+    <form id="tp-edit-form" hidden novalidate>
+      <label for="tp-text" class="field-label">Problem statement</label>
+      <textarea id="tp-text" rows="5" maxlength="5000"
+        placeholder="Describe the problem. Add any details the AI missed."></textarea>
+
+      <label for="tp-location-input" class="field-label">Location <span class="optional">(optional)</span></label>
+      <input type="text" id="tp-location-input" maxlength="300" />
+
+      <span class="field-label">Photos <span class="optional">(up to 4)</span></span>
+      <div id="tp-edit-photos" class="thumbs editable"></div>
+      <label class="btn btn-ghost add-photo">
+        ＋ Add photos
+        <input type="file" id="tp-add-photos" accept="image/jpeg,image/png,image/webp" multiple hidden />
+      </label>
+
+      <div id="tp-edit-error" class="error" role="alert" hidden></div>
+
+      <div class="tp-actions">
+        <button type="button" id="tp-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update ticket</button>
+      </div>
+    </form>
+
+    <!-- working -->
+    <div id="tp-loading" class="center" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="tp-loading-text"><strong>Working…</strong></p>
+    </div>
+
+    <!-- confirmed -->
+    <div id="tp-done" class="center" hidden>
+      <div class="done-icon" aria-hidden="true">✓</div>
+      <p><strong>Ticket confirmed</strong></p>
+      <p class="hint">Sent to <strong id="tp-done-dept"></strong>.<br />Action: yet to be taken.</p>
+      <div class="tp-actions">
+        <button type="button" id="tp-close" class="btn btn-secondary">Close</button>
+        <a id="tp-view-link" class="btn btn-primary" href="/departments">View in department</a>
+      </div>
+    </div>
+
+    <div id="tp-error" class="error" role="alert" hidden></div>
+  </div>
+</aside>
+<script>
+(() => {
+
+// Preview: keep everything in memory (a reload starts fresh)
+const localStorage = (() => {
+  const m = new Map();
+  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: (k) => m.delete(k) };
+})();
+
+const MockServer = (() => {
+  const R = {"departments": {"roads": {"name": "Roads & Engineering Department", "icon": "🛣️", "description": "Builds and maintains city roads, footpaths and public road infrastructure, and repairs damage reported by citizens.", "handles": ["Potholes", "Damaged roads", "Broken footpaths", "Speed breakers"]}, "waste": {"name": "Solid Waste Management Department", "icon": "🗑️", "description": "Runs door-to-door garbage collection, street sweeping and community bins, and acts against illegal dumping.", "handles": ["Uncollected garbage", "Overflowing bins", "Illegal dumping", "Litter"]}, "water": {"name": "Water Supply Department", "icon": "🚰", "description": "Supplies drinking water to homes and public taps, and maintains the city's water pipelines.", "handles": ["No water supply", "Pipeline leaks", "Dirty or contaminated water", "Low pressure"]}, "electricity": {"name": "Street Lighting & Electrical Department", "icon": "💡", "description": "Maintains streetlights and electrical fixtures on public roads. Faults on main power lines are coordinated with the power company.", "handles": ["Broken streetlights", "Damaged poles", "Hanging or exposed wires"]}, "trees": {"name": "Horticulture & Tree Cell", "icon": "🌳", "description": "Looks after trees, parks and green cover; removes fallen trees and prunes dangerous branches.", "handles": ["Fallen trees", "Dangerous branches", "Pruning requests", "Tree cutting"]}, "drainage": {"name": "Drainage & Sewerage Department", "icon": "🌊", "description": "Keeps storm-water drains and sewer lines flowing, and repairs manholes to prevent flooding and sewage overflow.", "handles": ["Blocked drains", "Sewage overflow", "Open or broken manholes", "Waterlogging"]}, "other": {"name": "Public Grievance Cell", "icon": "📋", "description": "Reviews complaints that don't fit any single department and forwards them to the right office.", "handles": ["Everything else"]}}, "severities": ["Low", "Medium", "High", "Critical"], "keywords": {"roads": ["pothole", "road", "footpath", "speed breaker", "gaddha", "sadak", "सड़क", "गड्ढा", "சாலை", "రోడ్డు", "ರಸ್ತೆ"], "waste": ["garbage", "trash", "waste", "dustbin", "litter", "kachra", "dump", "कचरा", "कूड़ा", "குப்பை", "చెత్త", "ಕಸ"], "water": ["water supply", "no water", "tap", "pipeline", "pipe", "leak", "paani", "पानी", "தண்ணீர்", "నీరు", "ನೀರು"], "electricity": ["streetlight", "street light", "light pole", "electric", "wire", "transformer", "bijli", "बिजली", "लाइट", "மின்"], "trees": ["tree", "branch", "पेड़", "மரம்", "చెట్టు", "ಮರ"], "drainage": ["drain", "sewage", "sewer", "gutter", "manhole", "nala", "waterlogg", "नाली", "सीवर", "கழிவுநீர்", "మురుగు"]}, "weak": ["pipe", "road", "sadak", "tap", "wire"], "severityRules": [["Critical", "Mentions an immediate danger to life or safety.", ["live wire", "electrocut", "spark", "open manhole", "fallen on", "fell on", "blocking main road", "blocking the main road", "collapse", "fire", "accident", "करंट", "आग"]], ["High", "Serious problem that affects many people or is getting worse.", ["leak", "overflow", "large pothole", "big pothole", "main road", "no water", "days", "sewage", "spreading", "बह रहा", "ओवरफ्लो"]], ["Low", "Minor issue or routine maintenance.", ["small litter", "litter", "overgrown", "paint", "minor", "maintenance"]]], "danger": ["danger", "hazard", "risk", "wire", "manhole", "pothole", "fallen", "खतरा"], "sensitive": ["school", "hospital", "स्कूल", "अस्पताल"], "scripts": [["ऀ", "ॿ", "Hindi/Marathi"], ["ঀ", "৿", "Bengali/Assamese"], ["਀", "੿", "Punjabi"], ["઀", "૿", "Gujarati"], ["଀", "୿", "Odia"], ["஀", "௿", "Tamil"], ["ఀ", "౿", "Telugu"], ["ಀ", "೿", "Kannada"], ["ഀ", "ൿ", "Malayalam"], ["؀", "ۿ", "Urdu"]], "samples": [[9, "roads", "High", "Large pothole on a busy main road is causing two-wheeler falls.", "Large pothole on the main road near the bus depot causing bike accidents.", "English", "Station Road, near KSRTC bus depot", "Resolved", "Pothole filled with hot-mix asphalt and the patch levelled on 14 Nov.", ["Fixed within a week, thank you!", "Road is smooth now."]], [4, "roads", "Medium", "Small pothole at the road edge, not on the main carriageway.", "Small pothole on the side of the lane outside the community hall.", "Kannada", "4th Cross, Jayanagar", "In Progress", "Site inspected. Patch work scheduled for this week.", []], [1, "roads", "Medium", "Broken footpath slabs are a tripping risk but not urgent.", "Several footpath slabs broken outside the vegetable market.", "Hindi", "Gandhi Bazaar", "Confirmed", "", []], [6, "waste", "High", "Garbage bin overflowing for days and spreading onto the road.", "Community garbage bin overflowing for 4 days, waste spilling onto the road.", "Hindi", "Market Street, Sector 7", "Resolved", "Bin cleared and collection frequency increased to daily.", ["Cleared, but please keep it daily."]], [2, "waste", "Low", "Small amount of litter, routine cleaning.", "Some litter and plastic wrappers near the park entrance.", "English", "Cubbon Park east gate", "Confirmed", "", []], [3, "water", "High", "Water leak wasting supply and getting worse.", "Water pipeline leaking at the junction, water flowing on the road since morning.", "Tamil", "Anna Nagar 2nd Avenue", "In Progress", "Leak located. Pipe replacement crew assigned.", ["Still leaking as of today evening."]], [5, "electricity", "Medium", "A single streetlight is out, no immediate danger.", "Streetlight not working on the residential lane for a week.", "Telugu", "Lane 3, Madhapur", "Resolved", "Faulty LED fitting replaced.", []], [0, "electricity", "Critical", "Exposed live wire near a school entrance.", "Electric wire hanging low from a pole near the school gate.", "English", "Govt. Primary School, Ward 12", "In Progress", "Area cordoned off. Power company informed for urgent repair.", []], [7, "trees", "Critical", "Fallen tree blocking a main road.", "Large tree fallen across the main road after last night's rain, traffic blocked.", "Marathi", "FC Road, near Fergusson College", "Resolved", "Tree cut and removed within 3 hours. Road reopened.", ["Very quick response, great work."]], [2, "trees", "Low", "Overgrown branches but not blocking anything.", "Overgrown branches touching the compound wall, needs pruning.", "English", "Koramangala 5th Block", "Confirmed", "", []], [3, "drainage", "Critical", "Open manhole on a busy road is a danger to life.", "Manhole cover missing on a busy road, very dangerous at night.", "Hinglish", "MG Road, opposite City Mall", "In Progress", "Temporary barricade placed. New cover ordered.", []], [8, "drainage", "High", "Sewage overflow affecting many houses.", "Sewage overflowing into the street from a blocked drain.", "Bengali", "Salt Lake, Sector 2", "Resolved", "Drain line de-silted with jetting machine.", []], [1, "other", "Low", "Not clearly a civic infrastructure issue.", "Request for a new bus shelter near the colony entrance.", "English", "", "Confirmed", "", []], [12, "roads", "High", "Large pothole on a main road that is getting deeper with traffic.", "Deep pothole in the middle of 100 Feet Road, vehicles swerving dangerously.", "English", "100 Feet Road, Indiranagar", "Confirmed", "", ["Still not fixed after almost two weeks."]], [20, "waste", "Medium", "Uncollected waste, no immediate danger.", "Garbage not collected from the lane for several days, stray dogs scattering it.", "Kannada", "7th Main, BTM Layout", "In Progress", "Collection vehicle rerouted; waiting for the new route schedule.", []]], "urgencySamples": {"2": [["Elderly people walk here to the market every morning and two have already tripped.", 3, "Weak", "Photo shows broken slabs but no clear sign of heavy elderly footfall.", "Pending review", ""]], "5": [["Water is flowing into the primary school compound next to the leak; children wade through it.", 2, "Supported", "Photo shows water pooling at a school gate, matching the reason.", "Accepted", "Repair moved up; crew to finish within 2 days."]], "9": [["Painters are coming to my house next week and the branches are in the way.", 2, "Not supported", "Reason is personal convenience; branches block nothing public.", "Rejected", "Not a public-safety ground. Normal priority applies."]]}, "sla": {"Critical": 3, "High": 8, "Medium": 15, "Low": 30}, "rank": {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}};
+  const PUBLIC = ["Confirmed", "In Progress", "Resolved"];
+  const MAX_PHOTOS = 4;
+  const tickets = [];
+  const photoStore = new Map();
+  let nextId = 1, nextFb = 1, nextPhoto = 1, nextUr = 1, nextNotif = 1;
+  const DAY = 24 * 3600e3;
+  const notifs = [];
+  let officer = null; // preview "session"
+
+  function addNotif(dept, kind, t, message, key, urgencyId = null, at = iso(new Date())) {
+    if (notifs.some((n) => n.key === key)) return;
+    notifs.push({ id: nextNotif++, dept, kind, ticket: t, urgencyId, message, key, created_at: at, read_at: null });
+  }
+  function markTicketNotifsRead(t) { notifs.forEach((n) => { if (n.ticket === t && !n.read_at) n.read_at = iso(new Date()); }); }
+  function deadlineFor(t) {
+    if (!t.confirmed_at) return null;
+    let d = new Date(new Date(t.confirmed_at).getTime() + R.sla[t.severity] * DAY);
+    for (const u of t.urgency)
+      if (u.status === "Accepted") d = new Date(Math.min(d, new Date(u.created_at).getTime() + u.requested_days * DAY));
+    return d;
+  }
+  const longDate = (d) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  function refreshOverdue(dept) {
+    const now = new Date();
+    for (const t of tickets) {
+      if (t.category !== dept || !["Confirmed", "In Progress"].includes(t.status)) continue;
+      const dl = deadlineFor(t);
+      if (!dl || now <= dl) continue;
+      const over = Math.floor((now - dl) / DAY);
+      const late = over === 0 ? "is now overdue" : `is overdue by ${over} day${over !== 1 ? "s" : ""}`;
+      addNotif(dept, "overdue", t, `${t.code} (${t.severity}) ${late}. It should have been resolved by ${longDate(dl)}. Current status: ${t.status}.`,
+        `overdue:${t.id}:${over}`, null, iso(new Date(dl.getTime() + over * DAY)));
+    }
+  }
+  function setStatus(t, status, action, by, at = iso(new Date())) {
+    Object.assign(t, { status, action_taken: action, action_updated_at: at, updated_at: at, action_by: by });
+    if (status === "Resolved") markTicketNotifsRead(t);
+  }
+  function decide(t, u, status, note, at = iso(new Date())) {
+    Object.assign(u, { status, officer_note: note, decided_at: at });
+    notifs.forEach((n) => { if (n.urgencyId === u.id && !n.read_at) n.read_at = at; });
+  }
+  function confirmTicket(t, at = iso(new Date())) {
+    t.status = "Confirmed"; t.confirmed_at = t.updated_at = at;
+    if (t.severity === "Critical") addNotif(t.category, "critical", t, `New CRITICAL complaint ${t.code}: ${t.summary}`, `critical:${t.id}`, null, at);
+  }
+  function addUrgency(t, u) {
+    t.urgency.push(u);
+    addNotif(t.category, "urgency", t, `Citizen requested urgent action on ${t.code} within ${u.requested_days} day${u.requested_days !== 1 ? "s" : ""}. AI proof check: ${u.ai_verdict}.`,
+      `urgency:${u.id}`, u.id, u.created_at);
+  }
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const clean = (v, max) => String(v ?? "").split(/\s+/).filter(Boolean).join(" ").slice(0, max);
+  const deptName = (c) => (R.departments[c] || R.departments.other).name;
+  function fail(status, message) { const e = new Error(message); e.status = status; throw e; }
+  function randomToken() {
+    const a = new Uint8Array(18); crypto.getRandomValues(a);
+    return [...a].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // ---------------- demo triage (same rules as ai_triage.py demo mode) ----------------
+  const LOC = /\b(?:near|opposite|opp\.?|behind|in front of|outside|at|on|in)\s+([A-Z0-9][^,.;!?\n]{2,60})/;
+  const LOC_STOP = /\s+(?:for|since|from|and|but|with|is|are|has|have|which|where|people)\b.*$/i;
+
+  function detectLanguage(text) {
+    if (!text) return "None";
+    for (const [start, end, name] of R.scripts)
+      for (const ch of text) if (ch >= start && ch <= end) return name;
+    return "English";
+  }
+  function severityFor(lower) {
+    if (R.sensitive.some((p) => lower.includes(p)) && R.danger.some((d) => lower.includes(d)))
+      return ["Critical", "Possible danger near a school or hospital."];
+    for (const [level, reason, words] of R.severityRules)
+      if (words.some((w) => lower.includes(w))) return [level, reason];
+    return ["Medium", "Real problem but no sign of immediate danger."];
+  }
+  function triage(text, photoCount, locationField) {
+    const lower = text.toLowerCase();
+    let category = "other", best = 0;
+    for (const [cat, kws] of Object.entries(R.keywords)) {
+      const score = kws.filter((k) => lower.includes(k)).reduce((s, k) => s + (R.weak.includes(k) ? 1 : 3), 0);
+      if (score > best) { best = score; category = cat; }
+    }
+    let [severity, reason] = severityFor(lower);
+    if (category === "other" && severity === "Medium") [severity, reason] = ["Low", "Not clearly a civic issue."];
+    if (!text) [severity, reason] = ["Medium", "Photo-only complaint; officer should verify severity."];
+    const first = text.split("\n")[0];
+    const m = text.match(LOC);
+    const textLoc = m ? m[1].replace(LOC_STOP, "").trim() : "";
+    const language = detectLanguage(text);
+    return {
+      category, severity, severity_reason: reason + " (demo rules)",
+      department: deptName(category),
+      summary: clean(text ? (first.length <= 120 ? first : first.slice(0, 117) + "...") : "Photo-only complaint - see attached photos.", 250),
+      detected_language: language,
+      location: clean([locationField, textLoc].filter(Boolean).join(", "), 300),
+      english_translation: ["English", "None"].includes(language) ? "" : "(Translation needs a real AI key - this preview uses the offline demo rules)",
+      image_observations: photoCount ? "(Photo analysis needs a real AI key - this preview uses the offline demo rules)" : "",
+      ai_engine: "demo (preview)",
+    };
+  }
+
+  // ---------------- storage ----------------
+  function create(ai, text, loc, photos, when = iso(new Date())) {
+    const id = nextId++;
+    const code = `CL-${when.slice(0, 10).replace(/-/g, "")}-${String(id).padStart(5, "0")}`;
+    const token = randomToken();
+    tickets.push({ id, code, token, status: "Draft", created_at: when, updated_at: when, confirmed_at: null,
+      complaint_text: text, location_input: loc, photos, ...ai, action_taken: "", action_updated_at: null, action_by: "", feedback: [], urgency: [] });
+    return { code, token };
+  }
+  const find = (code) => tickets.find((t) => t.code === code) || fail(404, "Not found");
+  const owns = (t, token) => !!token && t.token === token;
+  const urls = (t) => t.photos.map((p) => photoStore.get(p));
+
+  function privateView(t) {
+    return { ticket_id: t.code, status: t.status, created_at: t.created_at, updated_at: t.updated_at,
+      confirmed_at: t.confirmed_at, category: t.category, severity: t.severity, severity_reason: t.severity_reason,
+      department: t.department, summary: t.summary, detected_language: t.detected_language, location: t.location,
+      english_translation: t.english_translation, image_observations: t.image_observations, ai_engine: t.ai_engine,
+      complaint_text: t.complaint_text, location_input: t.location_input, photos: [...t.photos], photo_urls: urls(t),
+      action_taken: t.action_taken, action_updated_at: t.action_updated_at };
+  }
+  function publicView(t) {
+    return { ticket_id: t.code, status: t.status, confirmed_at: t.confirmed_at, category: t.category,
+      department: t.department, severity: t.severity, severity_reason: t.severity_reason, summary: t.summary,
+      detected_language: t.detected_language, location: t.location, photo_urls: urls(t),
+      action_taken: t.action_taken, action_updated_at: t.action_updated_at, feedback: t.feedback.map((f) => ({ ...f })),
+      urgency_requests: t.urgency.map(urPublic), can_request_urgency: ["Confirmed", "In Progress"].includes(t.status),
+      target_date: deadlineFor(t) ? iso(deadlineFor(t)) : null };
+  }
+  function officerView(t) {
+    const dl = deadlineFor(t);
+    return { ...privateView(t), action_by: t.action_by, deadline: dl ? iso(dl) : null, sla_days: R.sla[t.severity],
+      feedback: t.feedback.map((f) => ({ ...f })), urgency_requests: t.urgency.map((u) => urPrivate(u, t)) };
+  }
+  const urPublic = (u) => ({ id: u.id, requested_days: u.requested_days, status: u.status, ai_verdict: u.ai_verdict,
+    from_complainant: u.from_complainant, officer_note: u.officer_note, created_at: u.created_at, decided_at: u.decided_at });
+  const urPrivate = (u, t) => ({ ...urPublic(u), ticket_id: t.code, reason: u.reason,
+    proof_urls: u.proof.map((p) => photoStore.get(p)), ai_note: u.ai_note, ai_engine: u.ai_engine });
+
+  async function savePhotos(files) {
+    for (const f of files) {
+      if (!["image/jpeg", "image/png", "image/webp"].includes(f.type))
+        fail(400, "One of the files is not a valid image. Please upload JPG, PNG or WEBP photos.");
+      if (f.size > 10 * 1024 * 1024) fail(400, "Each photo must be 10 MB or smaller.");
+    }
+    const names = [];
+    for (const f of files) {
+      const dataUrl = await new Promise((res, rej) => {
+        const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f);
+      });
+      const name = `photo-${nextPhoto++}`;
+      photoStore.set(name, dataUrl);
+      names.push(name);
+    }
+    return names;
+  }
+  function readForm(fd) {
+    const text = String(fd.get("complaint") || "").trim();
+    const loc = String(fd.get("location") || "").trim().slice(0, 300);
+    if (text.length > 5000) fail(400, "Complaint is too long (max 5000 characters).");
+    const files = fd.getAll("photos").filter((f) => f && f.name);
+    return { text, loc, files };
+  }
+
+  // ---------------- routes (same as app.py) ----------------
+  async function handle(url, method, body, token, headers = {}) {
+    await sleep(method === "GET" ? 120 : 350);
+    let m;
+    if (method === "POST" && url === "/api/complaints") {
+      const { text, loc, files } = readForm(body);
+      if (!text && !files.length) fail(400, "Please describe the issue or attach a photo - at least one is required.");
+      if (files.length > MAX_PHOTOS) fail(400, `You can attach up to ${MAX_PHOTOS} photos.`);
+      const photos = await savePhotos(files);
+      await sleep(900); // "AI thinking"
+      const { code, token: tok } = create(triage(text, photos.length, loc), text, loc, photos);
+      return { ticket: privateView(find(code)), edit_token: tok };
+    }
+    if ((m = url.match(/^\/api\/tickets\/([^/]+)$/)) && method === "GET") {
+      const t = find(m[1]);
+      if (owns(t, token)) return { ticket: privateView(t) };
+      if (t.status === "Draft") fail(404, "Not found");
+      return { ticket: publicView(t) };
+    }
+    if ((m = url.match(/^\/api\/tickets\/([^/]+)\/(edit|confirm|feedback)$/)) && method === "POST") {
+      const t = find(m[1]);
+      if (m[2] === "feedback") {
+        if (t.status === "Draft") fail(404, "Not found");
+        const text = clean(body && body.text, 100000);
+        if (!text) fail(400, "Feedback can't be empty.");
+        if (text.length > 1000) fail(400, "Feedback is too long (max 1000 characters).");
+        const fb = { id: nextFb++, text, from_complainant: owns(t, token), created_at: iso(new Date()) };
+        t.feedback.push(fb);
+        return { feedback: { ...fb } };
+      }
+      if (!owns(t, token)) fail(403, "Not allowed");
+      if (t.status !== "Draft") fail(400, "This ticket is already confirmed and can no longer be edited.");
+      if (m[2] === "confirm") {
+        confirmTicket(t);
+        return { ticket: privateView(t) };
+      }
+      const { text, loc, files } = readForm(body);
+      const keep = body.getAll("keep_photos").filter((p) => t.photos.includes(p));
+      if (!text && !keep.length && !files.length) fail(400, "Please describe the issue or keep at least one photo.");
+      if (keep.length + files.length > MAX_PHOTOS) fail(400, `A ticket can have at most ${MAX_PHOTOS} photos.`);
+      const photos = keep.concat(await savePhotos(files));
+      await sleep(900);
+      Object.assign(t, triage(text, photos.length, loc), { complaint_text: text, location_input: loc, photos, updated_at: iso(new Date()) });
+      return { ticket: privateView(t) };
+    }
+    if ((m = url.match(/^\/api\/tickets\/([^/]+)\/urgency$/)) && method === "POST") {
+      const t = find(m[1]);
+      if (t.status === "Draft") fail(404, "Not found");
+      if (!["Confirmed", "In Progress"].includes(t.status))
+        fail(400, "Urgent action can only be requested on open complaints (Confirmed or In Progress).");
+      const reason = clean(body.get("reason"), 100000);
+      if (reason.length < 15) fail(400, "Please explain why this is urgent (at least 15 characters).");
+      if (reason.length > 1000) fail(400, "Reason is too long (max 1000 characters).");
+      const days = Number(body.get("days"));
+      if (!Number.isInteger(days)) fail(400, "Enter the number of days (1-60).");
+      if (days < 1 || days > 60) fail(400, "Number of days must be between 1 and 60.");
+      const files = body.getAll("proof").filter((f) => f && f.name);
+      if (!files.length) fail(400, "Proof is required. Upload at least one photo that supports your reason.");
+      if (files.length > 3) fail(400, "You can attach up to 3 proof photos.");
+      const proof = await savePhotos(files);
+      await sleep(900);
+      const tok = randomToken();
+      const u = { id: nextUr++, token: tok, reason, requested_days: days, proof, from_complainant: owns(t, token),
+        ai_verdict: "Unverified", ai_note: "Proof check needs a real AI key - an officer will review the proof manually.",
+        ai_engine: "demo (preview)", status: "Pending review", officer_note: "", created_at: iso(new Date()), decided_at: null };
+      addUrgency(t, u);
+      return { request: urPrivate(u, t), request_token: tok };
+    }
+    if ((m = url.match(/^\/api\/urgency\/(\d+)$/)) && method === "GET") {
+      for (const t of tickets) {
+        const u = t.urgency.find((x) => x.id === Number(m[1]));
+        if (u && headers["X-Request-Token"] && u.token === headers["X-Request-Token"]) return { request: urPrivate(u, t) };
+      }
+      fail(404, "Not found");
+    }
+    // ---------------- officer ----------------
+    if (url === "/api/officer/login" && method === "POST") {
+      const name = clean(body.name, 1000), dept = String(body.department || ""), pw = String(body.password || "").trim();
+      if (name.length < 2 || name.length > 60) fail(400, "Please enter your name (2-60 characters).");
+      if (!R.departments[dept]) fail(400, "Please choose your department.");
+      if (pw.toLowerCase() !== name.toLowerCase()) fail(401, "Wrong name or password.");
+      officer = { name, department: dept };
+      return { officer: offInfo() };
+    }
+    if (url === "/api/officer/logout" && method === "POST") { officer = null; return { ok: true }; }
+    if (url.startsWith("/api/officer/")) {
+      if (!officer) fail(401, "Please log in as an officer.");
+      const dept = officer.department;
+      if (url === "/api/officer/me") return { officer: offInfo() };
+      if (url === "/api/officer/tickets") {
+        const now = new Date();
+        const views = tickets.filter((t) => t.category === dept && t.status !== "Draft").map(officerView);
+        const key = (v) => v.status === "Resolved"
+          ? [1, 0, -new Date(v.action_updated_at || 0).getTime()]
+          : [0, R.rank[v.severity], new Date(v.deadline || 0).getTime()];
+        views.sort((a, b) => { const x = key(a), y = key(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+        const open = views.filter((v) => v.status !== "Resolved");
+        return { department: { key: dept, ...R.departments[dept] }, sla_days: R.sla, tickets: views,
+          counts: { open: open.length, overdue: open.filter((v) => v.deadline && new Date(v.deadline) < now).length,
+            critical: open.filter((v) => v.severity === "Critical").length, resolved: views.length - open.length } };
+      }
+      if ((m = url.match(/^\/api\/officer\/tickets\/([^/]+)\/update$/))) {
+        const t = find(m[1]);
+        if (t.category !== dept || t.status === "Draft") fail(404, "Not found");
+        const action = String(body.action_taken || "").trim();
+        if (!["Confirmed", "In Progress", "Resolved"].includes(body.status)) fail(400, "Invalid status.");
+        if (action.length > 2000) fail(400, "Action taken is too long (max 2000 characters).");
+        if (body.status === "Resolved" && !action) fail(400, "Describe the action taken before marking the complaint Resolved.");
+        setStatus(t, body.status, action, officer.name);
+        return { ticket: officerView(t) };
+      }
+      if ((m = url.match(/^\/api\/officer\/urgency\/(\d+)\/decide$/))) {
+        const t = tickets.find((x) => x.category === dept && x.urgency.some((u) => u.id === Number(m[1])));
+        if (!t) fail(404, "Not found");
+        const u = t.urgency.find((x) => x.id === Number(m[1]));
+        if (u.status !== "Pending review") fail(400, "This request has already been decided.");
+        const note = clean(body.note, 300);
+        if (!["Accepted", "Rejected"].includes(body.decision)) fail(400, "Decision must be Accepted or Rejected.");
+        if (body.decision === "Rejected" && !note) fail(400, "Please give a short reason for rejecting the request.");
+        decide(t, u, body.decision, note);
+        return { ok: true };
+      }
+      if (url === "/api/officer/notifications" && method === "GET") {
+        refreshOverdue(dept);
+        const mine = notifs.filter((n) => n.dept === dept)
+          .sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id - a.id);
+        return { unread: mine.filter((n) => !n.read_at).length,
+          notifications: mine.slice(0, 50).map((n) => ({ id: n.id, kind: n.kind, emergency: n.kind !== "overdue",
+            ticket_id: n.ticket ? n.ticket.code : null, message: n.message, created_at: n.created_at, read: !!n.read_at })) };
+      }
+      if (url === "/api/officer/notifications/read" && method === "POST") {
+        const ids = body.all ? null : (body.ids || []).map(Number);
+        notifs.forEach((n) => { if (n.dept === dept && !n.read_at && (!ids || ids.includes(n.id))) n.read_at = iso(new Date()); });
+        return { ok: true };
+      }
+      fail(404, "Not found");
+    }
+    if (url === "/api/departments" && method === "GET") {
+      return { departments: Object.entries(R.departments).map(([key, info]) => {
+        const counts = { "Confirmed": 0, "In Progress": 0, "Resolved": 0, total: 0 };
+        tickets.filter((t) => t.category === key && t.status !== "Draft").forEach((t) => { counts[t.status]++; counts.total++; });
+        return { key, ...info, counts };
+      }) };
+    }
+    if ((m = url.match(/^\/api\/departments\/([^/]+)\/tickets$/)) && method === "GET") {
+      const key = m[1];
+      if (!R.departments[key]) fail(404, "Not found");
+      const list = tickets.filter((t) => t.category === key && t.status !== "Draft")
+        .sort((a, b) => (b.confirmed_at || "").localeCompare(a.confirmed_at || "") || b.id - a.id);
+      return { department: { key, ...R.departments[key] }, tickets: list.map(publicView) };
+    }
+    fail(404, "Not found");
+  }
+
+  function offInfo() {
+    const d = R.departments[officer.department];
+    return { ...officer, department_name: d.name, department_icon: d.icon };
+  }
+
+  // ---------------- sample data (same as seed_demo.py) ----------------
+  (function seed() {
+    const now = new Date();
+    R.samples.forEach(([days, cat, sev, reason, summary, lang, loc, status, action, feedback], index) => {
+      const filed = new Date(now.getTime() - (days * 24 + 3) * 3600e3);
+      const ai = { category: cat, severity: sev, severity_reason: reason, department: deptName(cat), summary,
+        detected_language: lang, location: loc, english_translation: "", image_observations: "", ai_engine: "sample data" };
+      const { code } = create(ai, summary, loc, [], iso(filed));
+      const t = find(code);
+      confirmTicket(t, iso(new Date(filed.getTime() + 120e3)));
+      feedback.forEach((text, i) => t.feedback.push({ id: nextFb++, text, from_complainant: i === 0,
+        created_at: iso(new Date(Math.min(filed.getTime() + (24 + i) * 3600e3, now.getTime()))) }));
+      (R.urgencySamples[String(index)] || []).forEach(([reason, wanted, verdict, note, urStatus, officerNote]) => {
+        const u = { id: nextUr++, token: randomToken(), reason, requested_days: wanted, proof: [],
+          from_complainant: false, ai_verdict: verdict, ai_note: note, ai_engine: "sample data", status: "Pending review",
+          officer_note: "", created_at: iso(new Date(Math.min(filed.getTime() + 6 * 3600e3, now.getTime()))), decided_at: null };
+        addUrgency(t, u);
+        if (urStatus !== "Pending review")
+          decide(t, u, urStatus, officerNote, iso(new Date(Math.min(filed.getTime() + 9 * 3600e3, now.getTime()))));
+      });
+      if (status !== "Confirmed")
+        setStatus(t, status, action, "Demo Officer", iso(new Date(Math.min(filed.getTime() + 20 * 3600e3, now.getTime()))));
+    });
+  })();
+
+  return { handle, photoUrl: (name) => photoStore.get(name) || "", isOfficer: () => !!officer };
+})();
+// CivicLens - shared helpers + the floating "Your ticket" panel (used on every page)
+window.CL = (() => {
+  const KEYS = {
+    draft: "civiclens.draft",          // {code, token} of the ticket waiting for confirmation
+    mine: "civiclens.myTickets",       // {code: token} of tickets this browser filed
+    minimized: "civiclens.panelMinimized",
+    requests: "civiclens.myUrgencyRequests", // {requestId: token} of urgency requests this browser made
+  };
+  const MAX_PHOTOS = 4;
+  const MAX_BYTES = 10 * 1024 * 1024;
+  const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
+
+  // ---------------------------------------------------------------------
+  // Storage (localStorage can throw in private mode, so always guard it)
+  // ---------------------------------------------------------------------
+  const store = {
+    get(key, fallback) {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+    },
+    remove(key) {
+      try { localStorage.removeItem(key); } catch { /* ignore */ }
+    },
+  };
+
+  const getDraft = () => store.get(KEYS.draft, null);
+  const setDraft = (code, token) => store.set(KEYS.draft, { code, token });
+  const clearDraft = () => store.remove(KEYS.draft);
+  const myTickets = () => store.get(KEYS.mine, {});
+  const addMyTicket = (code, token) => store.set(KEYS.mine, { ...myTickets(), [code]: token });
+  const tokenFor = (code) => myTickets()[code] || null;
+  const myRequests = () => store.get(KEYS.requests, {});
+  const addMyRequest = (id, token) => store.set(KEYS.requests, { ...myRequests(), [id]: token });
+  const requestTokenFor = (id) => myRequests()[id] || null;
+
+  // ---------------------------------------------------------------------
+  // DOM + API helpers
+  // ---------------------------------------------------------------------
+
+  // el("div", {class: "x", text: "hi", onclick: fn}, child1, child2)
+  // Text is always set with textContent -> safe against HTML injection.
+  function el(tag, props = {}, ...children) {
+    const node = document.createElement(tag);
+    for (const [key, value] of Object.entries(props)) {
+      if (value === null || value === undefined || value === false) continue;
+      if (key === "class") node.className = value;
+      else if (key === "text") node.textContent = value;
+      else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+      else node.setAttribute(key, value === true ? "" : value);
+    }
+    for (const child of children.flat()) {
+      if (child === null || child === undefined || child === false) continue;
+      node.append(child instanceof Node ? child : document.createTextNode(String(child)));
+    }
+    return node;
+  }
+
+  async function api(url, { method = "GET", body, token, headers: extra = {} } = {}) {
+    return MockServer.handle(url, method, body, token, extra); // preview: no real server
+  }
+
+  // Check picked files. Returns {accepted: File[], error: string|null}
+  function checkPhotos(files, alreadyCount, max = MAX_PHOTOS) {
+    const accepted = [];
+    let error = null;
+    for (const f of files) {
+      if (!ALLOWED.includes(f.type)) { error = "Only JPG, PNG or WEBP photos are allowed."; continue; }
+      if (f.size > MAX_BYTES) { error = `"${f.name}" is larger than 10 MB.`; continue; }
+      if (alreadyCount + accepted.length >= max) { error = `You can attach up to ${max} photos.`; break; }
+      accepted.push(f);
+    }
+    return { accepted, error };
+  }
+
+  const slug = (s) => String(s || "").toLowerCase().replace(/\s+/g, "-");
+  const severityBadge = (s) => el("span", { class: `badge ${slug(s)}`, text: s });
+  const statusPill = (s) => el("span", { class: `status ${slug(s)}`, text: s });
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString(undefined, {
+      day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit",
+    });
+  }
+
+  function showError(node, message) {
+    node.textContent = message || "";
+    node.hidden = !message;
+  }
+
+  function emit(name, detail) {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+  }
+
+  // ---------------------------------------------------------------------
+  // Floating ticket panel
+  // ---------------------------------------------------------------------
+  const Panel = (() => {
+    const $ = (id) => document.getElementById(id);
+    const panel = $("ticket-panel");
+    if (!panel) return { init() {} };
+
+    const sections = ["tp-view", "tp-edit-form", "tp-loading", "tp-done"].map($);
+    let ticket = null;
+    let token = null;
+    let keepPhotos = [];   // existing photo file names kept while editing
+    let newPhotos = [];    // File objects added while editing
+
+    function only(id) {
+      sections.forEach((s) => (s.hidden = s.id !== id));
+      showError($("tp-error"), "");
+    }
+
+    function setMinimized(min) {
+      panel.classList.toggle("minimized", min);
+      $("tp-body").hidden = min;
+      $("tp-bar").setAttribute("aria-expanded", String(!min));
+      $("tp-toggle-icon").textContent = min ? "+" : "–";
+      $("tp-toggle-label").textContent = min ? "Expand" : "Minimise";
+      store.set(KEYS.minimized, min);
+    }
+
+    function renderView(t) {
+      $("tp-bar-code").textContent = t.ticket_id;
+      const sev = $("tp-severity");
+      sev.textContent = t.severity;
+      sev.className = `badge ${slug(t.severity)}`;
+      $("tp-category").textContent = t.category;
+      $("tp-summary").textContent = t.summary;
+      $("tp-department").textContent = t.department;
+      $("tp-language").textContent = t.detected_language || "—";
+      $("tp-location").textContent = t.location || "Not mentioned";
+      $("tp-severity-reason").textContent = t.severity_reason || "—";
+
+      $("tp-translation-wrap").hidden = !t.english_translation;
+      $("tp-translation").textContent = t.english_translation || "";
+
+      $("tp-photos-wrap").hidden = !t.photo_urls.length;
+      $("tp-photos").replaceChildren(
+        ...t.photo_urls.map((url) =>
+          el("a", { href: url, target: "_blank", rel: "noopener", class: "thumb" },
+            el("img", { src: url, alt: "Complaint photo" })))
+      );
+      $("tp-image-obs").textContent = t.image_observations || "";
+    }
+
+    function show(t, { maximize = false } = {}) {
+      ticket = t;
+      panel.hidden = false;
+      $("tp-bar-state").textContent = "· awaiting confirmation";
+      panel.classList.remove("confirmed");
+      renderView(t);
+      only("tp-view");
+      setMinimized(maximize ? false : store.get(KEYS.minimized, false));
+    }
+
+    // ----- edit mode -----
+    function renderEditPhotos() {
+      const items = [
+        ...keepPhotos.map((name) =>
+          el("div", { class: "thumb" },
+            el("img", { src: MockServer.photoUrl(name), alt: "Attached photo" }),
+            el("button", {
+              type: "button", class: "thumb-remove", "aria-label": "Remove photo", text: "×",
+              onclick: () => { keepPhotos = keepPhotos.filter((n) => n !== name); renderEditPhotos(); },
+            }))),
+        ...newPhotos.map((file) =>
+          el("div", { class: "thumb new" },
+            el("img", { src: URL.createObjectURL(file), alt: "New photo" }),
+            el("button", {
+              type: "button", class: "thumb-remove", "aria-label": "Remove photo", text: "×",
+              onclick: () => { newPhotos = newPhotos.filter((f) => f !== file); renderEditPhotos(); },
+            }))),
+      ];
+      $("tp-edit-photos").replaceChildren(...items);
+      $("tp-add-photos").closest("label").hidden = keepPhotos.length + newPhotos.length >= MAX_PHOTOS;
+    }
+
+    function startEdit() {
+      $("tp-text").value = ticket.complaint_text || "";
+      $("tp-location-input").value = ticket.location_input || "";
+      keepPhotos = [...ticket.photos];
+      newPhotos = [];
+      renderEditPhotos();
+      showError($("tp-edit-error"), "");
+      only("tp-edit-form");
+      $("tp-text").focus();
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+      const text = $("tp-text").value.trim();
+      if (!text && keepPhotos.length + newPhotos.length === 0) {
+        showError($("tp-edit-error"), "Please describe the issue or keep at least one photo.");
+        return;
+      }
+      const form = new FormData();
+      form.append("complaint", text);
+      form.append("location", $("tp-location-input").value.trim());
+      keepPhotos.forEach((name) => form.append("keep_photos", name));
+      newPhotos.forEach((file) => form.append("photos", file));
+
+      $("tp-loading-text").innerHTML = "<strong>AI is re-reading your complaint…<\/strong>";
+      only("tp-loading");
+      try {
+        const data = await api(`/api/tickets/${ticket.ticket_id}/edit`, { method: "POST", body: form, token });
+        ticket = data.ticket;
+        renderView(ticket);
+        only("tp-view");
+        emit("civiclens:ticket-updated", { ticket });
+      } catch (err) {
+        only("tp-edit-form");
+        showError($("tp-edit-error"), err.message);
+      }
+    }
+
+    // ----- confirm -----
+    async function confirm() {
+      $("tp-loading-text").innerHTML = "<strong>Sending to the department…<\/strong>";
+      only("tp-loading");
+      try {
+        const data = await api(`/api/tickets/${ticket.ticket_id}/confirm`, { method: "POST", token });
+        ticket = data.ticket;
+        clearDraft();
+        addMyTicket(ticket.ticket_id, token);
+        panel.classList.add("confirmed");
+        $("tp-bar-state").textContent = "· confirmed";
+        $("tp-done-dept").textContent = ticket.department;
+        $("tp-view-link").href = "#departments";
+        $("tp-view-link").onclick = (e) => { e.preventDefault(); Router.go("departments", ticket.category, ticket.ticket_id); };
+        only("tp-done");
+        setMinimized(false);
+        emit("civiclens:ticket-confirmed", { ticket });
+      } catch (err) {
+        only("tp-view");
+        showError($("tp-error"), err.message);
+      }
+    }
+
+    // ----- wiring -----
+    $("tp-bar").addEventListener("click", () => setMinimized(!panel.classList.contains("minimized")));
+    $("tp-edit").addEventListener("click", startEdit);
+    $("tp-cancel").addEventListener("click", () => only("tp-view"));
+    $("tp-edit-form").addEventListener("submit", submitEdit);
+    $("tp-confirm").addEventListener("click", confirm);
+    $("tp-close").addEventListener("click", () => (panel.hidden = true));
+    $("tp-add-photos").addEventListener("change", (e) => {
+      const { accepted, error } = checkPhotos([...e.target.files], keepPhotos.length + newPhotos.length);
+      newPhotos.push(...accepted);
+      e.target.value = "";
+      showError($("tp-edit-error"), error);
+      renderEditPhotos();
+    });
+
+    async function init() {
+      const draft = getDraft();
+      if (!draft) return;
+      try {
+        const data = await api(`/api/tickets/${draft.code}`, { token: draft.token });
+        token = draft.token;
+        if (data.ticket.status === "Draft") {
+          show(data.ticket);
+          emit("civiclens:panel-ready", { ticket: data.ticket });
+        } else {
+          // confirmed in another tab - remember it as ours and stop showing the panel
+          clearDraft();
+          addMyTicket(draft.code, draft.token);
+        }
+      } catch (err) {
+        if (err.status === 404 || err.status === 403) clearDraft();
+      }
+    }
+
+    return { init };
+  })();
+  window.__refreshPanel = () => Panel.init();
+
+  Panel.init();
+
+  return {
+    el, api, checkPhotos, severityBadge, statusPill, formatDate, showError,
+    getDraft, setDraft, tokenFor, myTickets, addMyRequest, requestTokenFor,
+    MAX_PHOTOS,
+    expandPanelNextTime: () => store.set(KEYS.minimized, false),
+  };
+})();
+
+// CivicLens - Page 1 "Report an issue"
+(() => {
+  const { el, api, checkPhotos, showError } = CL;
+  const $ = (id) => document.getElementById(id);
+
+  const form = $("report-form");
+  const complaint = $("complaint");
+  const photoInput = $("photo-input");
+  const dropzone = $("dropzone");
+  const errorBox = $("form-error");
+  const submitBtn = $("submit-btn");
+
+  let photos = []; // File objects
+
+  if (CL.getDraft()) $("pending-banner").hidden = false;
+
+  // ---------- character counter ----------
+  complaint.addEventListener("input", () => {
+    $("char-count").textContent = complaint.value.length;
+    if (complaint.value.trim()) showError(errorBox, "");
+  });
+
+  // ---------- photos ----------
+  function addPhotos(files) {
+    const { accepted, error } = checkPhotos([...files], photos.length);
+    photos.push(...accepted);
+    showError(errorBox, error);
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    $("photo-previews").replaceChildren(
+      ...photos.map((file) =>
+        el("div", { class: "thumb" },
+          el("img", { src: URL.createObjectURL(file), alt: file.name }),
+          el("button", {
+            type: "button", class: "thumb-remove", "aria-label": `Remove ${file.name}`, text: "×",
+            onclick: () => { photos = photos.filter((f) => f !== file); renderPreviews(); },
+          })))
+    );
+    dropzone.hidden = photos.length >= CL.MAX_PHOTOS;
+  }
+
+  dropzone.addEventListener("click", (e) => {
+    if (e.target !== photoInput) photoInput.click();
+  });
+  dropzone.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      photoInput.click();
+    }
+  });
+  photoInput.addEventListener("change", () => {
+    addPhotos(photoInput.files);
+    photoInput.value = "";
+  });
+
+  ["dragenter", "dragover"].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add("dragover"); }));
+  ["dragleave", "drop"].forEach((evt) =>
+    dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); }));
+  dropzone.addEventListener("drop", (e) => addPhotos(e.dataTransfer.files));
+
+  function resetForm() {
+    form.reset();
+    photos = [];
+    renderPreviews();
+    $("char-count").textContent = "0";
+    showError(errorBox, "");
+    $("loading-section").hidden = true;
+    $("report-section").hidden = false;
+    submitBtn.disabled = false;
+  }
+  window.ReportPage = {
+    onShow() {
+      $("pending-banner").hidden = !CL.getDraft();
+      if (!$("loading-section").hidden) return;
+      $("report-section").hidden = false;
+    },
+  };
+
+  // ---------- submit ----------
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = complaint.value.trim();
+
+    // Rule: at least text or photo
+    if (!text && photos.length === 0) {
+      showError(errorBox, "Please describe the issue or add a photo. At least one is required.");
+      complaint.focus();
+      return;
+    }
+
+    const data = new FormData();
+    data.append("complaint", text);
+    data.append("location", $("location").value.trim());
+    photos.forEach((file) => data.append("photos", file));
+
+    submitBtn.disabled = true;
+    $("report-section").hidden = true;
+    $("loading-section").hidden = false;
+
+    try {
+      const res = await api("/api/complaints", { method: "POST", body: data });
+      CL.setDraft(res.ticket.ticket_id, res.edit_token);
+      CL.expandPanelNextTime();
+      // Page 2: open the tab of the department the ticket was routed to
+      resetForm();
+      Router.go("departments", res.ticket.category);
+      window.__refreshPanel();
+    } catch (err) {
+      $("loading-section").hidden = true;
+      $("report-section").hidden = false;
+      showError(errorBox, err.message);
+      submitBtn.disabled = false;
+    }
+  });
+})();
+
+// CivicLens - Page 2 "Departments" (sidebar tabs, history log, actions, feedback)
+(() => {
+  const { el, api, severityBadge, statusPill, formatDate, showError } = CL;
+  const $ = (id) => document.getElementById(id);
+
+  let departments = [];
+  let current = null;
+  let tickets = [];
+  let filter = "all";
+  let pendingDept = null; // department chosen before the sidebar finished loading
+  const openRequests = new Set();    // urgency request ids whose details are expanded
+  const requestDetails = new Map();  // id -> private details (reason, proof) of my requests
+
+  // ---------------------------------------------------------------------
+  // Sidebar
+  // ---------------------------------------------------------------------
+  async function loadDepartments() {
+    const data = await api("/api/departments");
+    departments = data.departments;
+    renderTabs();
+  }
+
+  function renderTabs() {
+    $("dept-tabs").replaceChildren(
+      ...departments.map((d) =>
+        el("button", {
+          type: "button",
+          role: "tab",
+          class: "dept-tab" + (d.key === current ? " active" : ""),
+          "aria-selected": d.key === current ? "true" : "false",
+          onclick: () => selectDept(d.key),
+        },
+          el("span", { class: "tab-icon", "aria-hidden": "true", text: d.icon }),
+          el("span", { class: "tab-name", text: d.name }),
+          el("span", { class: "tab-count", title: "Complaints", text: d.counts.total })))
+    );
+    // on phones the tabs are a horizontal strip - scroll the active one into view
+    const strip = $("dept-tabs");
+    const active = strip.querySelector(".active");
+    if (active && strip.scrollWidth > strip.clientWidth) {
+      strip.scrollLeft = active.offsetLeft - (strip.clientWidth - active.clientWidth) / 2;
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Selected department
+  // ---------------------------------------------------------------------
+  async function selectDept(key, { highlight = null } = {}) {
+    if (!departments.length) { pendingDept = key; return; }
+    if (!departments.some((d) => d.key === key)) key = departments[0].key;
+    current = key;
+    renderTabs();
+
+    const data = await api(`/api/departments/${key}/tickets`);
+    if (current !== key) return; // user clicked another tab meanwhile
+    tickets = data.tickets;
+    renderIntro(departments.find((d) => d.key === key));
+    renderLog();
+
+    if (highlight) {
+      const card = document.getElementById(`t-${highlight}`);
+      if (card) {
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("flash");
+      }
+    }
+  }
+
+  function renderIntro(d) {
+    $("dept-icon").textContent = d.icon;
+    $("dept-name").textContent = d.name;
+    $("dept-description").textContent = d.description;
+    $("dept-handles").replaceChildren(el("span", { class: "chips-label", text: "Handles:" }),
+      ...d.handles.map((h) => el("span", { class: "chip", text: h })));
+
+    const c = d.counts;
+    const stat = (label, value, cls) =>
+      el("div", { class: `stat ${cls}` }, el("div", { class: "stat-value", text: value }), el("div", { class: "stat-label", text: label }));
+    $("dept-stats").replaceChildren(
+      stat("Total", c.total, "total"),
+      stat("Confirmed", c["Confirmed"], "confirmed"),
+      stat("In Progress", c["In Progress"], "in-progress"),
+      stat("Resolved", c["Resolved"], "resolved"),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // History log
+  // ---------------------------------------------------------------------
+  function renderLog() {
+    const shown = tickets.filter((t) => filter === "all" || t.status === filter);
+    $("ticket-log").replaceChildren(...shown.map(ticketCard));
+    $("log-empty").hidden = shown.length > 0;
+    $("log-empty").textContent = tickets.length ? "No complaints with this status." : "No complaints here yet.";
+  }
+
+  function ticketCard(t) {
+    const mine = Boolean(CL.tokenFor(t.ticket_id));
+
+    const actionBox = t.action_taken
+      ? el("div", { class: "action done" },
+          el("div", { class: "box-label", text: "Action taken" }),
+          el("p", { text: t.action_taken }),
+          el("div", { class: "hint", text: `Updated ${formatDate(t.action_updated_at)}` }))
+      : el("div", { class: "action pending" },
+          el("div", { class: "box-label", text: "Action taken" }),
+          el("p", { text: "⏳ Action yet to be taken" }));
+
+    const urgentAccepted = t.urgency_requests.some((u) => u.status === "Accepted");
+
+    return el("article", { class: "ticket-card" + (mine ? " mine" : ""), id: `t-${t.ticket_id}` },
+      el("header", { class: "tc-head" },
+        el("span", { class: "mono tc-id", text: t.ticket_id }),
+        mine ? el("span", { class: "tag-mine", text: "Your complaint" }) : null,
+        el("span", { class: "spacer" }),
+        urgentAccepted ? el("span", { class: "tag-urgent", title: "Urgent action approved by an officer", text: "⚡ Urgent" }) : null,
+        statusPill(t.status)),
+
+      el("h3", { class: "tc-summary", text: t.summary }),
+
+      el("div", { class: "tc-meta" },
+        severityBadge(t.severity),
+        t.location ? el("span", { text: `📍 ${t.location}` }) : null,
+        el("span", { text: `🗓 ${formatDate(t.confirmed_at)}` }),
+        t.status !== "Resolved" && t.target_date ? targetChip(t.target_date) : null,
+        t.detected_language && t.detected_language !== "None"
+          ? el("span", { text: `🌐 ${t.detected_language}` }) : null),
+
+      t.severity_reason ? el("p", { class: "tc-reason", text: t.severity_reason }) : null,
+
+      t.photo_urls.length
+        ? el("div", { class: "thumbs" }, ...t.photo_urls.map((url) =>
+            el("a", { href: url, target: "_blank", rel: "noopener", class: "thumb" },
+              el("img", { src: url, alt: "Complaint photo", loading: "lazy" }))))
+        : null,
+
+      actionBox,
+      urgencySection(t),
+      feedbackSection(t),
+    );
+  }
+
+  function refreshCard(t) {
+    const fresh = ticketCard(t);
+    const old = document.getElementById(`t-${t.ticket_id}`);
+    if (old) old.replaceWith(fresh);
+    return fresh;
+  }
+
+  // ---------------------------------------------------------------------
+  // "Request urgent action" - list on each card
+  // ---------------------------------------------------------------------
+  const verdictPill = (v) => el("span", { class: `verdict ${String(v || "").toLowerCase().replace(/\s+/g, "-")}`, text: v || "Unverified" });
+
+  function urgencySection(t) {
+    const requests = t.urgency_requests;
+    const myPending = requests.some((u) => CL.requestTokenFor(u.id) && u.status === "Pending review");
+    if (!requests.length && !t.can_request_urgency) return null;
+
+    const items = requests.map((u) => {
+      const isMine = Boolean(CL.requestTokenFor(u.id));
+      const details = requestDetails.get(u.id);
+      const expanded = isMine && openRequests.has(u.id) && details;
+      return el("li", { class: `ur-item ${u.status.toLowerCase().replace(/\s+/g, "-")}` },
+        el("div", { class: "ur-line" },
+          el("span", { class: "ur-status", text: u.status }),
+          el("span", { text: `Wanted within ${u.requested_days} day${u.requested_days === 1 ? "" : "s"}` }),
+          el("span", { class: "ur-ai" }, "AI proof check: ", verdictPill(u.ai_verdict)),
+          isMine ? el("span", { class: "tag-mine", text: "Your request" }) : null,
+          u.from_complainant ? el("span", { class: "tag-complainant", text: "Complainant" }) : null,
+          el("span", { class: "hint", text: formatDate(u.created_at) })),
+        u.officer_note ? el("p", { class: "ur-officer", text: `Officer: ${u.officer_note}` }) : null,
+        isMine
+          ? el("button", {
+              type: "button", class: "btn-link-plain",
+              text: expanded ? "Hide my reason & proof" : "Show my reason & proof",
+              onclick: () => toggleMyRequest(t, u.id),
+            })
+          : null,
+        expanded
+          ? el("div", { class: "ur-details" },
+              el("div", { class: "box-label", text: "Your reason" }),
+              el("p", { text: details.reason }),
+              details.proof_urls.length
+                ? el("div", { class: "thumbs" }, ...details.proof_urls.map((url) =>
+                    el("a", { href: url, target: "_blank", rel: "noopener", class: "thumb" },
+                      el("img", { src: url, alt: "Proof photo" }))))
+                : null,
+              details.ai_note ? el("p", { class: "hint", text: `AI note: ${details.ai_note}` }) : null)
+          : null);
+    });
+
+    return el("section", { class: "urgency" },
+      requests.length
+        ? el("div", { class: "box-label", text: `⚡ Urgent action requests (${requests.length})` })
+        : null,
+      requests.length ? el("ul", { class: "ur-list" }, ...items) : null,
+      t.can_request_urgency && !myPending
+        ? el("button", { type: "button", class: "btn btn-urgent-outline btn-small", text: "⚡ Request urgent action",
+            onclick: () => Urgency.open(t) })
+        : null,
+      myPending ? el("p", { class: "hint", text: "Your urgency request is waiting for officer review." }) : null);
+  }
+
+  async function toggleMyRequest(t, id) {
+    if (openRequests.has(id)) {
+      openRequests.delete(id);
+    } else {
+      if (!requestDetails.has(id)) {
+        try {
+          const data = await api(`/api/urgency/${id}`, { headers: { "X-Request-Token": CL.requestTokenFor(id) } });
+          requestDetails.set(id, data.request);
+        } catch (err) {
+          return;
+        }
+      }
+      openRequests.add(id);
+    }
+    refreshCard(t);
+  }
+
+  // ---------------------------------------------------------------------
+  // "Request urgent action" - dialog
+  // ---------------------------------------------------------------------
+  const Urgency = (() => {
+    const dlg = $("urgency-dialog");
+    const MAX_PROOF = 3;
+    let ticket = null;
+    let proof = [];
+    let busy = false;
+
+    function only(id) {
+      ["ur-form", "ur-loading", "ur-result"].forEach((x) => ($(x).hidden = x !== id));
+    }
+
+    function renderProof() {
+      $("ur-proof-previews").replaceChildren(...proof.map((file) =>
+        el("div", { class: "thumb" },
+          el("img", { src: URL.createObjectURL(file), alt: file.name }),
+          el("button", {
+            type: "button", class: "thumb-remove", "aria-label": `Remove ${file.name}`, text: "×",
+            onclick: () => { proof = proof.filter((f) => f !== file); renderProof(); },
+          }))));
+      $("ur-add-label").hidden = proof.length >= MAX_PROOF;
+    }
+
+    function open(t) {
+      ticket = t;
+      proof = [];
+      $("ur-form").reset();
+      $("ur-count").textContent = "0";
+      renderProof();
+      showError($("ur-error"), "");
+      $("ur-ticket-id").textContent = t.ticket_id;
+      $("ur-ticket-sev").replaceChildren(severityBadge(t.severity));
+      $("ur-ticket-summary").textContent = t.summary;
+      only("ur-form");
+      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+      $("ur-reason").focus();
+    }
+
+    function close() {
+      if (busy) return;
+      if (dlg.close) dlg.close(); else dlg.removeAttribute("open");
+    }
+
+    dlg.addEventListener("cancel", (e) => { if (busy) e.preventDefault(); });
+    dlg.addEventListener("click", (e) => {
+      if (e.target.closest("[data-close]")) close();
+      else if (e.target === dlg) close(); // click on the backdrop
+    });
+    $("ur-reason").addEventListener("input", () => ($("ur-count").textContent = $("ur-reason").value.length));
+    dlg.querySelectorAll("[data-days]").forEach((b) =>
+      b.addEventListener("click", () => ($("ur-days").value = b.dataset.days)));
+    $("ur-proof").addEventListener("change", (e) => {
+      const { accepted, error } = CL.checkPhotos([...e.target.files], proof.length, MAX_PROOF);
+      proof.push(...accepted);
+      e.target.value = "";
+      showError($("ur-error"), error);
+      renderProof();
+    });
+
+    $("ur-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const reason = $("ur-reason").value.trim();
+      const days = Number($("ur-days").value);
+      if (reason.length < 15) return showError($("ur-error"), "Please explain why this is urgent (at least 15 characters).");
+      if (!Number.isInteger(days) || days < 1 || days > 60) return showError($("ur-error"), "Enter the number of days (1-60).");
+      if (!proof.length) return showError($("ur-error"), "Proof is required. Add at least one photo that supports your reason.");
+
+      const form = new FormData();
+      form.append("reason", reason);
+      form.append("days", String(days));
+      proof.forEach((f) => form.append("proof", f));
+
+      busy = true;
+      only("ur-loading");
+      try {
+        const data = await api(`/api/tickets/${ticket.ticket_id}/urgency`, {
+          method: "POST", body: form, token: CL.tokenFor(ticket.ticket_id),
+        });
+        const r = data.request;
+        CL.addMyRequest(r.id, data.request_token);
+        requestDetails.set(r.id, r);
+
+        $("ur-res-days").textContent = `${r.requested_days} day${r.requested_days === 1 ? "" : "s"}`;
+        $("ur-res-verdict").replaceWith(Object.assign(verdictPill(r.ai_verdict), { id: "ur-res-verdict" }));
+        $("ur-res-note").textContent = r.ai_note;
+        only("ur-result");
+
+        const { reason: _r, proof_urls: _p, ai_note: _n, ai_engine: _e, ticket_id: _t, ...pub } = r;
+        ticket.urgency_requests.push(pub);
+        refreshCard(ticket);
+      } catch (err) {
+        only("ur-form");
+        showError($("ur-error"), err.message);
+      } finally {
+        busy = false;
+      }
+    });
+
+    return { open };
+  })();
+
+  // When the department should fix it by (severity deadline, or sooner if urgency was accepted)
+  function targetChip(iso) {
+    const d = new Date(iso);
+    const date = d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    return d < new Date()
+      ? el("span", { class: "target late", text: `⏰ Past target date (${date})` })
+      : el("span", { class: "target", text: `🎯 Target: ${date}` });
+  }
+
+  function feedbackSection(t) {
+    const list = el("ul", { class: "fb-list" },
+      ...t.feedback.map((f) =>
+        el("li", {},
+          el("p", { text: f.text }),
+          el("div", { class: "fb-meta" },
+            f.from_complainant ? el("span", { class: "tag-complainant", text: "Complainant" }) : el("span", { text: "Citizen" }),
+            el("span", { text: formatDate(f.created_at) })))));
+
+    const input = el("input", { type: "text", maxlength: "1000", placeholder: "Write your feedback on this complaint…", "aria-label": "Feedback" });
+    const error = el("div", { class: "error", role: "alert", hidden: true });
+    const button = el("button", { type: "submit", class: "btn btn-primary btn-small", text: "Send" });
+
+    const form = el("form", {
+      class: "fb-form",
+      onsubmit: async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) { showError(error, "Feedback can't be empty."); return; }
+        button.disabled = true;
+        try {
+          const data = await api(`/api/tickets/${t.ticket_id}/feedback`, {
+            method: "POST", body: { text }, token: CL.tokenFor(t.ticket_id),
+          });
+          t.feedback.push(data.feedback);
+          refreshCard(t).querySelector(".fb-form input").focus();
+        } catch (err) {
+          showError(error, err.message);
+          button.disabled = false;
+        }
+      },
+    }, input, button);
+
+    return el("section", { class: "feedback" },
+      el("div", { class: "box-label", text: `Citizen feedback (${t.feedback.length})` }),
+      t.feedback.length ? list : null,
+      form,
+      error);
+  }
+
+  // ---------------------------------------------------------------------
+  // Status filter
+  // ---------------------------------------------------------------------
+  $("status-filter").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-status]");
+    if (!btn) return;
+    filter = btn.dataset.status;
+    $("status-filter").querySelectorAll("button").forEach((b) => b.classList.toggle("active", b === btn));
+    renderLog();
+  });
+
+  // ---------------------------------------------------------------------
+  // Events from the ticket panel
+  // ---------------------------------------------------------------------
+  window.addEventListener("civiclens:panel-ready", (e) => {
+    // came here without ?dept -> open the tab the pending ticket was routed to
+    if (Router.dept) return;
+    if (!departments.length) pendingDept = e.detail.ticket.category;
+    else if (e.detail.ticket.category !== current) selectDept(e.detail.ticket.category);
+  });
+
+  window.addEventListener("civiclens:ticket-updated", (e) => {
+    // after an edit the AI may route the ticket to a different department
+    if (e.detail.ticket.category !== current) selectDept(e.detail.ticket.category);
+  });
+
+  window.addEventListener("civiclens:ticket-confirmed", async (e) => {
+    await loadDepartments(); // refresh counts
+    selectDept(e.detail.ticket.category, { highlight: e.detail.ticket.ticket_id });
+  });
+
+  // ---------------------------------------------------------------------
+  // Start
+  // ---------------------------------------------------------------------
+  window.DeptPage = { open: async (dept, highlight) => {
+    try {
+      await loadDepartments();
+      await selectDept(dept || current || pendingDept || departments[0].key, { highlight });
+    } catch (err) {
+      $("dept-name").textContent = "Could not load departments";
+      $("dept-description").textContent = err.message;
+    }
+  } };
+})();
+
+// CivicLens - officer login page
+(() => {
+  const { api, showError } = CL;
+  const $ = (id) => document.getElementById(id);
+
+  window.OfficerLoginPage = {
+    onShow() { $("login-form").reset(); showError($("login-error"), ""); $("login-btn").disabled = false; },
+  };
+
+  $("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("off-name").value.trim();
+    const department = $("off-dept").value;
+    const password = $("off-password").value;
+
+    if (name.length < 2) return showError($("login-error"), "Please enter your name.");
+    if (!department) return showError($("login-error"), "Please choose your department.");
+    if (!password) return showError($("login-error"), "Please enter your password.");
+
+    $("login-btn").disabled = true;
+    try {
+      await api("/api/officer/login", { method: "POST", body: { name, department, password } });
+      Router.go("officer");
+    } catch (err) {
+      showError($("login-error"), err.message);
+      $("login-btn").disabled = false;
+    }
+  });
+})();
+
+// CivicLens - officer dashboard (own department only)
+(() => {
+  const { el, api, severityBadge, statusPill, formatDate, showError } = CL;
+  const $ = (id) => document.getElementById(id);
+  const DAY = 24 * 3600 * 1000;
+  const POLL_MS = 60 * 1000; // check for new notifications every minute
+
+  let tickets = [];
+  let filter = "open";
+  let notifications = [];
+  const openDetails = new Set(); // ticket ids whose citizen details are expanded
+  const drafts = new Map();      // unsaved officer edits: id -> {inProgress, resolved, action}
+
+  // ---------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------
+  function handleError(err) {
+    if (err.status === 401) {
+      Router.go("officer-login");
+      return true;
+    }
+    toast(err.message, true);
+    return false;
+  }
+
+  let toastTimer = null;
+  function toast(message, isError = false) {
+    const t = $("toast");
+    t.textContent = message;
+    t.classList.toggle("error-toast", isError);
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (t.hidden = true), 3500);
+  }
+
+  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+  // Deadline chip: "Due in 3 days", "Due today", "Overdue by 2 days", "Resolved"
+  function dueChip(t) {
+    if (t.status === "Resolved") {
+      return el("span", { class: "due done", text: `✓ Resolved ${formatDate(t.action_updated_at)}` });
+    }
+    if (!t.deadline) return null;
+    const deadline = new Date(t.deadline);
+    const diff = deadline - new Date();
+    const date = deadline.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    if (diff < 0) {
+      const days = Math.floor(-diff / DAY);
+      return el("span", { class: "due overdue", text: days ? `⏰ Overdue by ${plural(days, "day")}` : "⏰ Overdue today",
+        title: `Deadline was ${date}` });
+    }
+    const days = Math.floor(diff / DAY);
+    return el("span", { class: "due" + (days < 1 ? " soon" : ""),
+      text: days < 1 ? `Due today (${date})` : `Due in ${plural(days, "day")} (${date})` });
+  }
+
+  // ---------------------------------------------------------------------
+  // Load + header
+  // ---------------------------------------------------------------------
+  async function loadMe() {
+    try {
+      const { officer } = await api("/api/officer/me");
+      $("officer-chip").textContent = `👤 ${officer.name} · ${officer.department_icon} ${officer.department_name}`;
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  async function loadTickets() {
+    try {
+      const data = await api("/api/officer/tickets");
+      tickets = data.tickets;
+      renderIntro(data);
+      renderList();
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  function renderIntro(data) {
+    const d = data.department;
+    $("off-dept-icon").textContent = d.icon;
+    $("off-dept-name").textContent = d.name;
+    const s = data.sla_days;
+    $("off-sla").textContent =
+      `Deadlines from confirmation: Critical ${s.Critical} days · High ${s.High} · Medium ${s.Medium} · Low ${s.Low}. ` +
+      "Status and action taken are shown to citizens as soon as you submit them.";
+    const c = data.counts;
+    const stat = (label, value, cls) =>
+      el("div", { class: `stat ${cls}` }, el("div", { class: "stat-value", text: value }), el("div", { class: "stat-label", text: label }));
+    $("off-stats").replaceChildren(
+      stat("Open", c.open, "total"),
+      stat("Overdue", c.overdue, "overdue"),
+      stat("Critical open", c.critical, "critical"),
+      stat("Resolved", c.resolved, "resolved"),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Complaint list
+  // ---------------------------------------------------------------------
+  function renderList() {
+    const shown = tickets.filter((t) =>
+      filter === "all" ? true : filter === "open" ? t.status !== "Resolved" : t.status === filter);
+    $("off-list").replaceChildren(...shown.map(card));
+    $("off-empty").hidden = shown.length > 0;
+    $("off-empty").textContent = filter === "open" ? "No open complaints. 🎉" : "Nothing here yet.";
+  }
+
+  function card(t) {
+    const overdue = t.status !== "Resolved" && t.deadline && new Date(t.deadline) < new Date();
+    const urgentAccepted = t.urgency_requests.some((u) => u.status === "Accepted");
+    const expanded = openDetails.has(t.ticket_id);
+
+    return el("article", {
+      class: "ticket-card off-card" + (overdue ? " is-overdue" : "") + ` sev-${t.severity.toLowerCase()}`,
+      id: `o-${t.ticket_id}`,
+    },
+      el("header", { class: "tc-head" },
+        el("span", { class: "mono tc-id", text: t.ticket_id }),
+        severityBadge(t.severity),
+        statusPill(t.status),
+        urgentAccepted ? el("span", { class: "tag-urgent", text: "⚡ Urgent" }) : null,
+        el("span", { class: "spacer" }),
+        dueChip(t)),
+
+      el("h3", { class: "tc-summary", text: t.summary }),
+
+      el("div", { class: "tc-meta" },
+        t.location ? el("span", { text: `📍 ${t.location}` }) : null,
+        el("span", { text: `🗓 Filed ${formatDate(t.confirmed_at)}` }),
+        t.detected_language && t.detected_language !== "None" ? el("span", { text: `🌐 ${t.detected_language}` }) : null),
+
+      t.severity_reason ? el("p", { class: "tc-reason", text: `Why ${t.severity}: ${t.severity_reason}` }) : null,
+
+      el("button", {
+        type: "button", class: "btn-link-plain teal",
+        text: expanded ? "Hide citizen's complaint" : "Show citizen's complaint & photos",
+        onclick: () => { expanded ? openDetails.delete(t.ticket_id) : openDetails.add(t.ticket_id); refresh(t); },
+      }),
+      expanded ? detailsBox(t) : null,
+
+      urgencyBox(t),
+      t.feedback.length ? feedbackBox(t) : null,
+      updateBox(t),
+    );
+  }
+
+  function refresh(t) {
+    const old = $(`o-${t.ticket_id}`);
+    if (old) old.replaceWith(card(t));
+  }
+
+  function detailsBox(t) {
+    return el("div", { class: "off-details" },
+      el("div", { class: "box-label", text: "Citizen's complaint (original)" }),
+      el("p", { class: "original", text: t.complaint_text || "(photo only, no text)" }),
+      t.english_translation ? el("div", {},
+        el("div", { class: "box-label", text: "English translation" }),
+        el("p", { text: t.english_translation })) : null,
+      t.photo_urls.length ? el("div", { class: "thumbs" }, ...t.photo_urls.map((url) =>
+        el("a", { href: url, target: "_blank", rel: "noopener", class: "thumb" },
+          el("img", { src: url, alt: "Complaint photo", loading: "lazy" })))) : null,
+      t.image_observations ? el("p", { class: "hint", text: `AI on photos: ${t.image_observations}` }) : null);
+  }
+
+  // ----- urgent action requests (with reason + proof, officers only) -----
+  function urgencyBox(t) {
+    if (!t.urgency_requests.length) return null;
+    return el("section", { class: "urgency" },
+      el("div", { class: "box-label", text: `⚡ Urgent action requests (${t.urgency_requests.length})` }),
+      el("ul", { class: "ur-list" }, ...t.urgency_requests.map((u) => {
+        const pending = u.status === "Pending review";
+        const note = el("input", { type: "text", maxlength: "300", placeholder: "Note for the citizen (required to reject)" });
+        const decide = async (decision) => {
+          try {
+            await api(`/api/officer/urgency/${u.id}/decide`, { method: "POST", body: { decision, note: note.value } });
+            toast(`Urgency request ${decision.toLowerCase()}.`);
+            await Promise.all([loadTickets(), loadNotifications()]);
+          } catch (err) {
+            handleError(err);
+          }
+        };
+        return el("li", { class: `ur-item ${u.status.toLowerCase().replace(/\s+/g, "-")}` },
+          el("div", { class: "ur-line" },
+            el("span", { class: "ur-status", text: u.status }),
+            el("span", { text: `Wants it within ${plural(u.requested_days, "day")}` }),
+            el("span", { class: "ur-ai" }, "AI proof check: ",
+              el("span", { class: `verdict ${String(u.ai_verdict).toLowerCase().replace(/\s+/g, "-")}`, text: u.ai_verdict })),
+            u.from_complainant ? el("span", { class: "tag-complainant", text: "Complainant" }) : null,
+            el("span", { class: "hint", text: formatDate(u.created_at) })),
+          el("p", { class: "ur-reason" }, el("strong", { text: "Reason: " }), u.reason),
+          u.ai_note ? el("p", { class: "hint", text: `AI: ${u.ai_note}` }) : null,
+          u.proof_urls.length ? el("div", { class: "thumbs" }, ...u.proof_urls.map((url) =>
+            el("a", { href: url, target: "_blank", rel: "noopener", class: "thumb" },
+              el("img", { src: url, alt: "Proof photo" })))) : el("p", { class: "hint", text: "(no proof photos stored)" }),
+          u.officer_note ? el("p", { class: "ur-officer", text: `Your note: ${u.officer_note}` }) : null,
+          pending ? el("div", { class: "ur-decide" },
+            note,
+            el("button", { type: "button", class: "btn btn-small btn-primary", text: "Accept", onclick: () => decide("Accepted") }),
+            el("button", { type: "button", class: "btn btn-small btn-secondary", text: "Reject", onclick: () => decide("Rejected") })) : null);
+      })));
+  }
+
+  function feedbackBox(t) {
+    return el("section", { class: "feedback" },
+      el("div", { class: "box-label", text: `Citizen feedback (${t.feedback.length})` }),
+      el("ul", { class: "fb-list" }, ...t.feedback.map((f) =>
+        el("li", {},
+          el("p", { text: f.text }),
+          el("div", { class: "fb-meta" },
+            el("span", { text: f.from_complainant ? "Complainant" : "Citizen" }),
+            el("span", { text: formatDate(f.created_at) }))))));
+  }
+
+  // ----- the officer's update: 2 checkboxes + action taken -----
+  function updateBox(t) {
+    const saved = { inProgress: t.status !== "Confirmed", resolved: t.status === "Resolved", action: t.action_taken || "" };
+    const state = drafts.get(t.ticket_id) || saved;
+
+    const inProgress = el("input", { type: "checkbox", checked: state.inProgress });
+    const resolved = el("input", { type: "checkbox", checked: state.resolved });
+    const action = el("textarea", { rows: "2", maxlength: "2000", placeholder: "Write the action taken (shown to citizens)…" });
+    action.value = state.action;
+    const error = el("div", { class: "error", role: "alert", hidden: true });
+    const submit = el("button", { type: "submit", class: "btn btn-primary btn-small", text: "Submit update" });
+
+    const remember = () => drafts.set(t.ticket_id,
+      { inProgress: inProgress.checked, resolved: resolved.checked, action: action.value });
+    // Resolved implies In Progress; un-ticking In Progress also un-ticks Resolved
+    inProgress.addEventListener("change", () => { if (!inProgress.checked) resolved.checked = false; remember(); });
+    resolved.addEventListener("change", () => { if (resolved.checked) inProgress.checked = true; remember(); });
+    action.addEventListener("input", remember);
+
+    const form = el("form", {
+      class: "off-update",
+      onsubmit: async (e) => {
+        e.preventDefault();
+        const status = resolved.checked ? "Resolved" : inProgress.checked ? "In Progress" : "Confirmed";
+        const text = action.value.trim();
+        if (status === "Resolved" && !text) {
+          showError(error, "Describe the action taken before marking it Resolved.");
+          action.focus();
+          return;
+        }
+        submit.disabled = true;
+        try {
+          await api(`/api/officer/tickets/${t.ticket_id}/update`, { method: "POST", body: { status, action_taken: text } });
+          drafts.delete(t.ticket_id);
+          toast("Update saved. Citizens can now see it.");
+          await Promise.all([loadTickets(), loadNotifications()]);
+        } catch (err) {
+          if (!handleError(err)) showError(error, err.message);
+          submit.disabled = false;
+        }
+      },
+    },
+      el("div", { class: "box-label", text: "Your update for citizens" }),
+      el("div", { class: "checks" },
+        el("label", { class: "check" }, inProgress, el("span", { text: "In Progress" })),
+        el("label", { class: "check" }, resolved, el("span", { text: "Resolved" }))),
+      action,
+      error,
+      el("div", { class: "off-update-foot" },
+        el("span", { class: "hint", text: t.action_updated_at
+          ? `Last update ${formatDate(t.action_updated_at)}${t.action_by ? ` by ${t.action_by}` : ""}`
+          : "No update yet - citizens see “Action yet to be taken”." }),
+        submit));
+    return form;
+  }
+
+  $("off-filter").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-filter]");
+    if (!b) return;
+    filter = b.dataset.filter;
+    $("off-filter").querySelectorAll("button").forEach((x) => x.classList.toggle("active", x === b));
+    renderList();
+  });
+
+  // ---------------------------------------------------------------------
+  // Notifications (bell)
+  // ---------------------------------------------------------------------
+  const KIND = {
+    critical: { icon: "🚨", label: "Emergency · Critical complaint" },
+    urgency: { icon: "⚡", label: "Emergency · Urgent action request" },
+    overdue: { icon: "🤖", label: "AI reminder · Past deadline" },
+  };
+
+  async function loadNotifications() {
+    try {
+      const data = await api("/api/officer/notifications");
+      notifications = data.notifications;
+      const count = $("bell-count");
+      count.hidden = data.unread === 0;
+      count.textContent = data.unread > 99 ? "99+" : data.unread;
+      $("bell").classList.toggle("has-unread", data.unread > 0);
+      $("bell").setAttribute("aria-label", `Notifications (${data.unread} unread)`);
+      renderNotifications();
+    } catch (err) {
+      handleError(err);
+    }
+  }
+
+  function renderNotifications() {
+    $("notif-list").replaceChildren(...notifications.map((n) => {
+      const k = KIND[n.kind] || { icon: "🔔", label: n.kind };
+      return el("li", {},
+        el("button", {
+          type: "button",
+          class: "notif" + (n.read ? "" : " unread") + (n.emergency ? " emergency" : ""),
+          onclick: () => openNotification(n),
+        },
+          el("span", { class: "notif-icon", "aria-hidden": "true", text: k.icon }),
+          el("span", { class: "notif-body" },
+            el("span", { class: "notif-kind", text: k.label }),
+            el("span", { class: "notif-msg", text: n.message }),
+            el("span", { class: "notif-time", text: formatDate(n.created_at) }))));
+    }));
+    $("notif-empty").hidden = notifications.length > 0;
+  }
+
+  async function openNotification(n) {
+    togglePanel(false);
+    if (!n.read) {
+      api("/api/officer/notifications/read", { method: "POST", body: { ids: [n.id] } })
+        .then(loadNotifications).catch(handleError);
+    }
+    if (!n.ticket_id) return;
+    let target = $(`o-${n.ticket_id}`);
+    if (!target) { // e.g. it's resolved and the "Open" filter is on
+      filter = "all";
+      $("off-filter").querySelectorAll("button").forEach((x) => x.classList.toggle("active", x.dataset.filter === "all"));
+      renderList();
+      target = $(`o-${n.ticket_id}`);
+    }
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.classList.remove("flash");
+      void target.offsetWidth; // restart the animation
+      target.classList.add("flash");
+    }
+  }
+
+  function togglePanel(open) {
+    $("notif-panel").hidden = !open;
+    $("bell").setAttribute("aria-expanded", String(open));
+  }
+
+  $("bell").addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePanel($("notif-panel").hidden);
+  });
+  document.addEventListener("click", (e) => {
+    if (!$("notif-panel").hidden && !e.target.closest(".bell-wrap")) togglePanel(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") togglePanel(false); });
+  $("notif-read-all").addEventListener("click", async () => {
+    try {
+      await api("/api/officer/notifications/read", { method: "POST", body: { all: true } });
+      loadNotifications();
+    } catch (err) {
+      handleError(err);
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // Logout + start
+  // ---------------------------------------------------------------------
+  $("logout").addEventListener("click", async () => {
+    try { await api("/api/officer/logout", { method: "POST", body: {} }); } catch { /* ignore */ }
+    Router.go("officer-login");
+  });
+
+  window.OfficerPage = { open() { loadMe(); loadTickets(); loadNotifications(); } };
+  setInterval(() => { if (location.hash === "#officer") loadNotifications(); }, POLL_MS);
+})();
+
+
+const Router = {
+  dept: null,
+  highlight: null,
+  go(view, dept = null, highlight = null) {
+    this.dept = dept;
+    this.highlight = highlight;
+    if (location.hash !== "#" + view) location.hash = view;
+    else this.render();
+  },
+  views: {
+    report: { main: "view-report", header: "hdr-citizen", title: "Report an issue" },
+    departments: { main: "view-departments", header: "hdr-citizen", title: "Departments" },
+    "officer-login": { main: "view-officer-login", header: "hdr-officer-login", title: "Officer login" },
+    officer: { main: "view-officer", header: "hdr-officer", title: "Officer dashboard" },
+  },
+  render() {
+    let view = location.hash.slice(1);
+    if (!this.views[view]) view = "report";
+    if (view === "officer" && !MockServer.isOfficer()) return this.go("officer-login");
+    if (view === "officer-login" && MockServer.isOfficer()) return this.go("officer");
+    for (const [name, v] of Object.entries(this.views)) document.getElementById(v.main).hidden = name !== view;
+    for (const h of ["hdr-citizen", "hdr-officer-login", "hdr-officer"])
+      document.getElementById(h).hidden = h !== this.views[view].header;
+    document.body.classList.toggle("officer-mode", view.startsWith("officer"));
+    document.querySelectorAll(".site-nav a").forEach((a) => a.classList.toggle("active", a.dataset.view === view));
+    document.title = this.views[view].title + " · CivicLens";
+    window.scrollTo(0, 0);
+    if (view === "departments") DeptPage.open(this.dept, this.highlight);
+    else if (view === "report") ReportPage.onShow();
+    else if (view === "officer-login") OfficerLoginPage.onShow();
+    else OfficerPage.open();
+    this.highlight = null;
+  },
+};
+window.addEventListener("hashchange", () => Router.render());
+document.querySelectorAll(".site-nav a, a.brand").forEach((a) =>
+  a.addEventListener("click", () => { Router.dept = null; }));
+Router.render();
+
+})();
+</script>
+</body>
+</html>

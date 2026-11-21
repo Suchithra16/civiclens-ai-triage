@@ -1,0 +1,95 @@
+<!-- Floating "your ticket" panel. Shown on every page until the citizen confirms. -->
+<aside id="ticket-panel" class="tp" hidden aria-label="Your ticket">
+  <button type="button" id="tp-bar" class="tp-bar" aria-expanded="true" aria-controls="tp-body">
+    <span class="tp-dot" aria-hidden="true"></span>
+    <span class="tp-bar-text">
+      <strong>Your ticket</strong>
+      <span id="tp-bar-code" class="mono"></span>
+      <span id="tp-bar-state" class="tp-bar-state">· awaiting confirmation</span>
+    </span>
+    <span id="tp-toggle-icon" class="tp-toggle" aria-hidden="true">–</span>
+    <span class="sr-only" id="tp-toggle-label">Minimise</span>
+  </button>
+
+  <div id="tp-body" class="tp-body">
+    <!-- view mode -->
+    <div id="tp-view">
+      <div class="tp-tags">
+        <span id="tp-severity" class="badge"></span>
+        <span id="tp-category" class="chip cap"></span>
+      </div>
+      <h3 id="tp-summary" class="tp-summary"></h3>
+
+      <dl class="tp-grid">
+        <div><dt>Department</dt><dd id="tp-department"></dd></div>
+        <div><dt>Detected language</dt><dd id="tp-language"></dd></div>
+        <div><dt>Location</dt><dd id="tp-location"></dd></div>
+      </dl>
+
+      <p class="tp-label">Severity reason</p>
+      <p id="tp-severity-reason" class="tp-text"></p>
+
+      <div id="tp-translation-wrap" hidden>
+        <p class="tp-label">English translation</p>
+        <p id="tp-translation" class="tp-text"></p>
+      </div>
+
+      <div id="tp-photos-wrap" hidden>
+        <p class="tp-label">Photos</p>
+        <div id="tp-photos" class="thumbs"></div>
+        <p id="tp-image-obs" class="hint"></p>
+      </div>
+
+      <p class="tp-note">Check the ticket. If the AI got something wrong, <strong>Edit</strong> it.
+        When it looks right, <strong>Confirm</strong> to send it to the department.</p>
+
+      <div class="tp-actions">
+        <button type="button" id="tp-edit" class="btn btn-secondary">✎ Edit</button>
+        <button type="button" id="tp-confirm" class="btn btn-primary">✓ Confirm</button>
+      </div>
+    </div>
+
+    <!-- edit mode -->
+    <form id="tp-edit-form" hidden novalidate>
+      <label for="tp-text" class="field-label">Problem statement</label>
+      <textarea id="tp-text" rows="5" maxlength="5000"
+        placeholder="Describe the problem. Add any details the AI missed."></textarea>
+
+      <label for="tp-location-input" class="field-label">Location <span class="optional">(optional)</span></label>
+      <input type="text" id="tp-location-input" maxlength="300" />
+
+      <span class="field-label">Photos <span class="optional">(up to 4)</span></span>
+      <div id="tp-edit-photos" class="thumbs editable"></div>
+      <label class="btn btn-ghost add-photo">
+        ＋ Add photos
+        <input type="file" id="tp-add-photos" accept="image/jpeg,image/png,image/webp" multiple hidden />
+      </label>
+
+      <div id="tp-edit-error" class="error" role="alert" hidden></div>
+
+      <div class="tp-actions">
+        <button type="button" id="tp-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update ticket</button>
+      </div>
+    </form>
+
+    <!-- working -->
+    <div id="tp-loading" class="center" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="tp-loading-text"><strong>Working…</strong></p>
+    </div>
+
+    <!-- confirmed -->
+    <div id="tp-done" class="center" hidden>
+      <div class="done-icon" aria-hidden="true">✓</div>
+      <p><strong>Ticket confirmed</strong></p>
+      <p class="hint">Sent to <strong id="tp-done-dept"></strong>.<br />Action: yet to be taken.</p>
+      <div class="tp-actions">
+        <button type="button" id="tp-close" class="btn btn-secondary">Close</button>
+        <a id="tp-view-link" class="btn btn-primary" href="/departments">View in department</a>
+      </div>
+    </div>
+
+    <div id="tp-error" class="error" role="alert" hidden></div>
+  </div>
+</aside>

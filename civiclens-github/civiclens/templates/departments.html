@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Departments{% endblock %}
+
+{% block content %}
+<main class="container wide dept-layout">
+  <!-- ============ SIDEBAR: department tabs ============ -->
+  <nav class="dept-sidebar" aria-label="Departments">
+    <div class="sidebar-title">Departments</div>
+    <div id="dept-tabs" class="dept-tabs" role="tablist"></div>
+  </nav>
+
+  <!-- ============ SELECTED DEPARTMENT ============ -->
+  <section id="dept-panel" class="dept-panel" role="tabpanel" aria-live="polite">
+    <div class="card dept-intro">
+      <div class="dept-title-row">
+        <span id="dept-icon" class="dept-icon" aria-hidden="true"></span>
+        <div>
+          <h1 id="dept-name">Loading…</h1>
+          <p id="dept-description" class="lead"></p>
+        </div>
+      </div>
+      <div id="dept-handles" class="chips"></div>
+      <div id="dept-stats" class="stats"></div>
+    </div>
+
+    <div class="log-header">
+      <h2>Complaint history</h2>
+      <div id="status-filter" class="filter" role="group" aria-label="Filter by status">
+        <button type="button" data-status="all" class="active">All</button>
+        <button type="button" data-status="Confirmed">Confirmed</button>
+        <button type="button" data-status="In Progress">In Progress</button>
+        <button type="button" data-status="Resolved">Resolved</button>
+      </div>
+    </div>
+
+    <div id="ticket-log" class="ticket-log"></div>
+    <p id="log-empty" class="empty" hidden>No complaints here yet.</p>
+  </section>
+</main>
+
+<!-- ============ "Request urgent action" dialog ============ -->
+<dialog id="urgency-dialog" class="ur-dialog" aria-labelledby="ur-title">
+  <form id="ur-form" novalidate>
+    <header class="ur-head">
+      <div>
+        <div class="ur-kicker">⚡ Request urgent action</div>
+        <h2 id="ur-title">Ask for this complaint to be fixed sooner</h2>
+      </div>
+      <button type="button" class="ur-close" data-close aria-label="Close">×</button>
+    </header>
+
+    <div class="ur-ticket">
+      <div class="ur-ticket-row"><span id="ur-ticket-id" class="mono"></span><span id="ur-ticket-sev"></span></div>
+      <p id="ur-ticket-summary"></p>
+    </div>
+
+    <p class="ur-intro">Use this only if waiting for the normal priority would cause real harm.
+      Every request is checked against its proof before an officer decides.</p>
+
+    <label for="ur-reason" class="field-label">Why does this need urgent action?</label>
+    <textarea id="ur-reason" rows="4" maxlength="1000"
+      placeholder="e.g. Children from the school next door walk past this open manhole every morning."></textarea>
+    <div class="hint counter"><span id="ur-count">0</span> / 1000 · at least 15 characters</div>
+
+    <label for="ur-days" class="field-label">Needed within</label>
+    <div class="ur-days">
+      <input type="number" id="ur-days" min="1" max="60" step="1" inputmode="numeric" placeholder="3" />
+      <span>days</span>
+      <div class="ur-quick" role="group" aria-label="Quick pick">
+        <button type="button" data-days="1">1 day</button>
+        <button type="button" data-days="3">3 days</button>
+        <button type="button" data-days="7">7 days</button>
+      </div>
+    </div>
+
+    <span class="field-label">Proof <span class="required">(required)</span></span>
+    <p class="hint ur-proof-hint">Up to 3 photos that prove your reason: the danger itself, or a letter
+      or notice (e.g. from a school or hospital). Requests without convincing proof are rejected.</p>
+    <div id="ur-proof-previews" class="thumbs editable"></div>
+    <label id="ur-add-label" class="btn btn-ghost add-photo">
+      ＋ Add proof photos
+      <input type="file" id="ur-proof" accept="image/jpeg,image/png,image/webp" multiple hidden />
+    </label>
+
+    <p class="ur-privacy">🔒 Only municipal officers and you can see your reason and proof.
+      Other citizens only see that urgent action was requested.</p>
+
+    <div id="ur-error" class="error" role="alert" hidden></div>
+
+    <div class="tp-actions">
+      <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+      <button type="submit" class="btn btn-urgent">⚡ Send request</button>
+    </div>
+  </form>
+
+  <div id="ur-loading" class="center ur-pad" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <p><strong>Checking your proof…</strong></p>
+    <p class="hint">The AI is comparing your photos with your reason.</p>
+  </div>
+
+  <div id="ur-result" class="center ur-pad" hidden>
+    <div class="done-icon" aria-hidden="true">✓</div>
+    <h2>Request sent</h2>
+    <p class="hint">Wanted within <strong id="ur-res-days"></strong> · <strong>Pending officer review</strong></p>
+    <div class="ur-check">
+      <div class="box-label">AI proof check</div>
+      <span id="ur-res-verdict" class="verdict"></span>
+      <p id="ur-res-note"></p>
+    </div>
+    <p class="hint">The AI check only helps the officer. The officer makes the final decision.</p>
+    <div class="tp-actions"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+  </div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/departments.js') }}"></script>
+{% endblock %}

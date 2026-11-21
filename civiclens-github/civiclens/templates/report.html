@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Report an issue{% endblock %}
+
+{% block content %}
+<main class="container narrow">
+  <div id="pending-banner" class="banner" hidden>
+    You have a ticket waiting for your confirmation (see the panel at the bottom right).
+    Submitting a new complaint will replace it.
+  </div>
+
+  <!-- ============ FORM ============ -->
+  <section id="report-section" class="card">
+    <h1>Report an issue</h1>
+    <p class="lead">
+      Tell us what's wrong in your own words, in English or any Indian language.
+      You can add photos too. Either one is enough.
+    </p>
+
+    <form id="report-form" novalidate>
+      <label for="complaint" class="field-label">Describe the problem</label>
+      <textarea id="complaint" name="complaint" rows="5" maxlength="5000"
+        placeholder="e.g. Big pothole near the bus stop, two bikes fell yesterday…&#10;या: हमारी गली में तीन दिन से कचरा नहीं उठाया गया…"></textarea>
+      <div class="hint counter"><span id="char-count">0</span> / 5000</div>
+
+      <span class="field-label">Photos <span class="optional">(optional, up to 4)</span></span>
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Add photos">
+        <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple hidden />
+        <div class="dz-icon" aria-hidden="true">📷</div>
+        <div><strong>Tap to add photos</strong> or drag them here</div>
+        <div class="hint">JPG, PNG or WEBP · up to 10 MB each</div>
+      </div>
+      <div id="photo-previews" class="thumbs editable"></div>
+
+      <label for="location" class="field-label">Location <span class="optional">(optional)</span></label>
+      <input type="text" id="location" name="location" maxlength="300"
+        placeholder="e.g. 5th Cross, Jayanagar, near Ganesha temple" />
+
+      <div id="form-error" class="error" role="alert" hidden></div>
+
+      <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Submit complaint</button>
+    </form>
+  </section>
+
+  <p class="officer-hint">Municipal officer? <a href="/officer/login">Log in to your department →</a></p>
+
+  <!-- ============ LOADING ============ -->
+  <section id="loading-section" class="card center" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <p><strong>Analysing your complaint…</strong></p>
+    <p class="hint">Reading the text, checking the photos and routing it to the right department.</p>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Officer login{% endblock %}
+{% block brand_tag %}Officer portal{% endblock %}
+
+{% block nav %}
+<nav class="site-nav">
+  <a href="/">← Citizen site</a>
+</nav>
+{% endblock %}
+
+{% block content %}
+<main class="container narrow">
+  <section class="card login-card">
+    <div class="kicker">Municipal officers</div>
+    <h1>Officer login</h1>
+    <p class="lead">Log in to see and update the complaints of your department.</p>
+
+    <form id="login-form" novalidate>
+      <label for="off-name" class="field-label">Name</label>
+      <input type="text" id="off-name" autocomplete="name" maxlength="60" placeholder="e.g. Ravi Kumar" />
+
+      <label for="off-dept" class="field-label">Department</label>
+      <select id="off-dept">
+        <option value="" selected disabled>Choose your department</option>
+        {% for key, d in departments.items() %}
+        <option value="{{ key }}">{{ d.icon }} {{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="off-password" class="field-label">Password</label>
+      <input type="password" id="off-password" autocomplete="current-password" />
+      <p class="hint">Prototype: for now, your password is your name.</p>
+
+      <div id="login-error" class="error" role="alert" hidden></div>
+
+      <button type="submit" id="login-btn" class="btn btn-primary btn-block">Log in</button>
+    </form>
+  </section>
+</main>
+{% endblock %}
+
+{% block panel %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/officer-login.js') }}"></script>
+{% endblock %}
